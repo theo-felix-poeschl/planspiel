@@ -11,16 +11,70 @@
   </head>
   <body>
     <h1>Planspiel — Skeleton App</h1>
-    <p>This is a minimal static page served by Express.</p>
-    <button id="ping">Ping API</button>
-    <pre id="result">Not pinged yet.</pre>
+    <p>This is a minimal static page served by Express. Use this from a mobile device.</p>
+
+    <div id="app">
+      <section>
+        <button id="btn-register">Register this device</button>
+        <div id="user-info">No user yet.</div>
+      </section>
+
+      <section style="margin-top:1rem">
+        <h3>Simulate scanning a QR</h3>
+        <label>Type: <select id="scan-type"><option>Geld</option><option>Sauerstoff</option></select></label>
+        <label>Amount: <input id="scan-amount" type="number" value="10" /></label>
+        <button id="btn-scan">Send scan</button>
+        <div id="scan-result"></div>
+      </section>
+
+      <section style="margin-top:1rem">
+        <h3>QR link for physical QR codes</h3>
+        <p>After registering, you can generate a short link to encode into a QR that will credit the user when scanned.</p>
+        <div id="qr-link">Register first.</div>
+      </section>
+    </div>
 
     <script>
-      document.getElementById('ping').addEventListener('click', async () => {
-        const res = await fetch('/api/ping');
+      const origin = window.location.origin;
+      function setUserInfo(u){
+        const el = document.getElementById('user-info');
+        if(!u) { el.textContent = 'No user yet.'; return; }
+        el.innerHTML = `<strong>ID:</strong> ${u.id}<br><strong>Job:</strong> ${u.job}<br><strong>Geld:</strong> ${u.geld}<br><strong>Sauerstoff:</strong> ${u.sauerstoff}`;
+        const qrEl = document.getElementById('qr-link');
+        const sample = `${origin}/scan?user=${encodeURIComponent(u.id)}&type=Geld&amount=50`;
+        qrEl.innerHTML = `<input style="width:100%" value="${sample}" readonly />`;
+      }
+
+      async function register(){
+        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type':'application/json' } });
         const json = await res.json();
-        document.getElementById('result').textContent = JSON.stringify(json, null, 2);
-      });
+        const u = json.user;
+        localStorage.setItem('planspiel_user', u.id);
+        setUserInfo(u);
+      }
+
+      async function loadUser(){
+        const uid = localStorage.getItem('planspiel_user') || new URLSearchParams(location.search).get('user');
+        if(!uid) return setUserInfo(null);
+        const res = await fetch(`/api/user/${encodeURIComponent(uid)}`);
+        if(res.ok){ const j = await res.json(); setUserInfo(j.user); }
+        else setUserInfo(null);
+      }
+
+      async function sendScan(){
+        const uid = localStorage.getItem('planspiel_user');
+        if(!uid) return alert('Register first');
+        const type = document.getElementById('scan-type').value;
+        const amount = document.getElementById('scan-amount').value;
+        const res = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user: uid, type, amount }) });
+        const j = await res.json();
+        if(res.ok){ document.getElementById('scan-result').textContent = 'OK — new balances: ' + JSON.stringify(j.user); setUserInfo(j.user); }
+        else { document.getElementById('scan-result').textContent = 'Error: ' + JSON.stringify(j); }
+      }
+
+      document.getElementById('btn-register').addEventListener('click', register);
+      document.getElementById('btn-scan').addEventListener('click', sendScan);
+      loadUser();
     </script>
   </body>
 </html>
