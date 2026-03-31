@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Planspiel — Skeleton App</title>
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 2rem; }
+      pre { background:#f4f4f4; padding:1rem }
+    </style>
+  </head>
+  <body>
+    <h1>Planspiel — Skeleton App</h1>
+    <p>This is a minimal static page served by Express.</p>
+    <button id="ping">Ping API</button>
+    <pre id="result">Not pinged yet.</pre>
+
+    <script>
+      document.getElementById('ping').addEventListener('click', async () => {
+        const res = await fetch('/api/ping');
+        const json = await res.json();
+        document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+      });
+    </script>
+  </body>
+</html>
