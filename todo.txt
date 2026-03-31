@@ -1,0 +1,3 @@
+Wenn eingeloggt:
+- Nutzer muss pro Gerät eine feste UUID bekommen, die ihn identifiziert
+
