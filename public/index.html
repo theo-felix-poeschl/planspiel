@@ -1,80 +1,712 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Planspiel — Skeleton App</title>
+    <title>Planspiel</title>
     <style>
-      body { font-family: system-ui, sans-serif; padding: 2rem; }
-      pre { background:#f4f4f4; padding:1rem }
+      :root {
+        color-scheme: light;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #102a43;
+        background: #eef6ff;
+      }
+
+      * { box-sizing: border-box; }
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 1rem;
+        background: radial-gradient(circle at top, rgba(37, 99, 235, 0.14), transparent 28%),
+                    linear-gradient(180deg, #eef6ff 0%, #f8fbff 100%);
+        visibility: hidden;
+      }
+
+      .page {
+        min-height: calc(100vh - 2rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: stretch;
+        gap: 0.75rem;
+      }
+
+      .screen {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1rem;
+        position: relative;
+        min-height: 100%;
+      }
+
+      .screen.hidden {
+        display: none !important;
+      }
+
+      .scanner-overlay.hidden {
+        display: none !important;
+      }
+
+      .top-actions,
+      .bottom-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .top-actions {
+        padding-top: 0.5rem;
+      }
+
+      .camera-button,
+      .back-button {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.95);
+        color: #2563eb;
+        font-size: 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+        cursor: pointer;
+      }
+
+      .camera-button:hover,
+      .back-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .money-field {
+        min-width: 140px;
+        max-width: 180px;
+        border-radius: 999px;
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        padding: 0.85rem 1rem;
+        background: rgba(255,255,255,0.95);
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+        cursor: pointer;
+      }
+
+      .timer-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: center;
+      }
+
+      .timer-container strong {
+        font-size: clamp(4rem, 14vw, 8rem);
+        line-height: 0.9;
+        color: #0f172a;
+      }
+
+      .timer-meta {
+        display: grid;
+        gap: 0.3rem;
+      }
+
+      .timer-meta span {
+        color: #475569;
+      }
+
+      .bottom-actions {
+        justify-content: center;
+        padding-bottom: 0.5rem;
+      }
+
+      .announcement {
+        margin-top: 0.5rem;
+        color: #1e3a8a;
+        font-size: 0.95rem;
+        padding: 0;
+      }
+
+      .alert {
+        margin-top: 0.5rem;
+        padding: 0.95rem 1rem;
+        border-radius: 24px;
+        background: #fee2e2;
+        color: #b91c1c;
+        border: none;
+        max-width: 420px;
+      }
+
+      .expired-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.88);
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      .expired-overlay.hidden {
+        display: none !important;
+      }
+
+      .dead-card {
+        width: min(100%, 420px);
+        border-radius: 32px;
+        padding: 2rem 1.5rem;
+        background: rgba(20, 20, 20, 0.95);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: center;
+        color: #f8fafc;
+      }
+
+      .dead-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #ef4444;
+      }
+
+      .dead-card h1 {
+        margin: 0;
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        letter-spacing: -0.05em;
+      }
+
+      .dead-card p {
+        margin: 1rem 0 0;
+        color: rgba(248, 250, 252, 0.8);
+        line-height: 1.6;
+      }
+
+      .dead-divider {
+        margin: 1.75rem auto 1rem;
+        width: 72px;
+        height: 4px;
+        background: linear-gradient(90deg, #f87171, #ef4444);
+        border-radius: 999px;
+      }
+
+      .dead-info {
+        margin-bottom: 1.5rem;
+      }
+
+      .dead-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(248, 113, 113, 0.28);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.96rem;
+      }
+
+      .camera-button {
+        position: relative;
+        z-index: 30;
+      }
+
+      .scanner-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 20, 43, 0.82);
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        z-index: 40;
+      }
+
+      .scanner-content {
+        width: min(100%, 520px);
+        display: grid;
+        gap: 1rem;
+        background: #111827;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+      }
+
+      .scanner video {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        background: black;
+      }
+
+      .scanner-message {
+        color: #f8fafc;
+        font-size: 0.95rem;
+        padding: 0 1rem 0.5rem;
+        text-align: center;
+      }
+
+      .scanner-controls {
+        display: flex;
+        justify-content: center;
+        padding: 0 1rem 1rem;
+      }
+
+      .back-button {
+        background: rgba(255,255,255,0.95);
+        color: #102a43;
+      }
+
+      .screen-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .admin-content {
+        display: grid;
+        gap: 1rem;
+      }
+
+      textarea {
+        min-height: 180px;
+        resize: vertical;
+      }
+
+      .helper-text {
+        color: #475569;
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 540px) {
+        body { padding: 0.75rem; }
+        .top-actions,
+        .bottom-actions { gap: 0.75rem; }
+        .camera-button,
+        .back-button { width: 52px; height: 52px; }
+        .money-field { min-width: 120px; }
+        .scanner-content { width: 100%; }
+      }
+
     </style>
   </head>
   <body>
-    <h1>Planspiel — Skeleton App</h1>
-    <p>This is a minimal static page served by Express. Use this from a mobile device.</p>
+    <div class="page">
+      <div id="mainScreen" class="screen">
+        <div class="top-actions">
+          <button id="scanQrButton" class="camera-button" aria-label="QR-Code scannen">📷</button>
+          <input id="moneyDisplay" class="money-field" type="text" readonly value="€0" aria-label="Geld" />
+        </div>
 
-    <div id="app">
-      <section>
-        <button id="btn-register">Register this device</button>
-        <div id="user-info">No user yet.</div>
-      </section>
+        <div class="timer-container">
+          <strong id="timerValue">--</strong>
+          <div class="timer-meta">
+            <span id="timerLabel">Minuten</span>
+            <span id="timerHelp">Registriere ein Gerät.</span>
+          </div>
+          <div id="expiredAlert" class="alert hidden">Der Timer ist abgelaufen. Nur der QR-Scanner bleibt aktiv.</div>
+          <div id="announcementBanner" class="announcement hidden">
+            <span id="announcementText"></span>
+          </div>
+        </div>
 
-      <section style="margin-top:1rem">
-        <h3>Simulate scanning a QR</h3>
-        <label>Type: <select id="scan-type"><option>Geld</option><option>Sauerstoff</option></select></label>
-        <label>Amount: <input id="scan-amount" type="number" value="10" /></label>
-        <button id="btn-scan">Send scan</button>
-        <div id="scan-result"></div>
-      </section>
+        <div class="bottom-actions">
+          <button id="buyOxygenButton" class="button">+ Sauerstoff kaufen</button>
+        </div>
 
-      <section style="margin-top:1rem">
-        <h3>QR link for physical QR codes</h3>
-        <p>After registering, you can generate a short link to encode into a QR that will credit the user when scanned.</p>
-        <div id="qr-link">Register first.</div>
-      </section>
+        <div id="expiredOverlay" class="expired-overlay hidden">
+          <div class="dead-card">
+            <div class="dead-icon">💀</div>
+            <h1>Gestorben!</h1>
+            <p>Bitte begib dich in die Krankenstation.</p>
+            <div class="dead-divider"></div>
+            <p class="dead-info">Scanne den QR-Code, um dich zu heilen.</p>
+            <div class="dead-action">Am QR-Code in der Krankenstation heilen</div>
+          </div>
+        </div>
+        <div id="scannerContainer" class="scanner-overlay hidden">
+          <div class="scanner-content">
+            <video id="qrVideo" autoplay muted playsinline></video>
+            <canvas id="qrCanvas" class="hidden"></canvas>
+            <div id="scannerMessage" class="scanner-message">Halte den QR-Code in den Rahmen.</div>
+            <div class="scanner-controls">
+              <button id="stopScannerButton" class="button secondary">Stoppen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminScreen" class="screen hidden">
+        <div class="top-actions">
+          <button id="adminBackButton" class="back-button" aria-label="Zurück">←</button>
+          <div class="screen-title">Admin-Modus</div>
+          <div style="width: 56px;"></div>
+        </div>
+
+        <div class="admin-content">
+          <div class="field-group">
+            <label for="announcementInput">Ankündigung</label>
+            <textarea id="announcementInput" placeholder="Sicherheitsalarm..."></textarea>
+          </div>
+          <button id="saveAnnouncementButton" class="button">Ankündigung speichern</button>
+          <p class="helper-text">Nur Administratoren können diesen Text ändern. Alle anderen Geräte sehen die Nachricht automatisch.</p>
+        </div>
+      </div>
     </div>
 
+    <div id="toast" class="toast"></div>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
-      const origin = window.location.origin;
-      function setUserInfo(u){
-        const el = document.getElementById('user-info');
-        if(!u) { el.textContent = 'No user yet.'; return; }
-        el.innerHTML = `<strong>ID:</strong> ${u.id}<br><strong>Job:</strong> ${u.job}<br><strong>Geld:</strong> ${u.geld}<br><strong>Sauerstoff:</strong> ${u.sauerstoff}`;
-        const qrEl = document.getElementById('qr-link');
-        const sample = `${origin}/scan?user=${encodeURIComponent(u.id)}&type=Geld&amount=50`;
-        qrEl.innerHTML = `<input style="width:100%" value="${sample}" readonly />`;
+      const toastEl = document.getElementById('toast');
+      const mainScreen = document.getElementById('mainScreen');
+      const adminScreen = document.getElementById('adminScreen');
+      const timerValueEl = document.getElementById('timerValue');
+      const timerLabelEl = document.getElementById('timerLabel');
+      const timerHelpEl = document.getElementById('timerHelp');
+      const buyOxygenButton = document.getElementById('buyOxygenButton');
+      const expiredAlert = document.getElementById('expiredAlert');
+      const scanQrButton = document.getElementById('scanQrButton');
+      const scannerContainer = document.getElementById('scannerContainer');
+      const qrVideo = document.getElementById('qrVideo');
+      const qrCanvas = document.getElementById('qrCanvas');
+      const scannerMessage = document.getElementById('scannerMessage');
+      const stopScannerButton = document.getElementById('stopScannerButton');
+      const announcementBanner = document.getElementById('announcementBanner');
+      const announcementText = document.getElementById('announcementText');
+      const announcementInput = document.getElementById('announcementInput');
+      const saveAnnouncementButton = document.getElementById('saveAnnouncementButton');
+      const adminBackButton = document.getElementById('adminBackButton');
+      const moneyDisplay = document.getElementById('moneyDisplay');
+      const expiredOverlay = document.getElementById('expiredOverlay');
+
+      let currentUser = null;
+      let currentAnnouncement = '';
+      let adminTapCount = 0;
+      let adminTapTimer = null;
+      let scanStream = null;
+      let scanActive = false;
+      let timerTick = null;
+
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add('show');
+        clearTimeout(showToast._timeout);
+        showToast._timeout = setTimeout(() => toastEl.classList.remove('show'), 2600);
       }
 
-      async function register(){
-        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type':'application/json' } });
-        const json = await res.json();
-        const u = json.user;
-        localStorage.setItem('planspiel_user', u.id);
-        setUserInfo(u);
+      function formatCountdown(remainingMs) {
+        if (remainingMs <= 0) return '<1';
+        const totalSeconds = Math.ceil(remainingMs / 1000);
+        if (totalSeconds < 60) {
+          return `${totalSeconds}s`;
+        }
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
       }
 
-      async function loadUser(){
-        const uid = localStorage.getItem('planspiel_user') || new URLSearchParams(location.search).get('user');
-        if(!uid) return setUserInfo(null);
-        const res = await fetch(`/api/user/${encodeURIComponent(uid)}`);
-        if(res.ok){ const j = await res.json(); setUserInfo(j.user); }
-        else setUserInfo(null);
+      function computeRemaining(user) {
+        const now = Date.now();
+        const end = user && user.oxygen_end ? new Date(user.oxygen_end).getTime() : now;
+        const remainingMs = Math.max(0, end - now);
+        return {
+          ...user,
+          remaining_ms: remainingMs,
+          remaining_seconds: Math.ceil(remainingMs / 1000),
+          expired: remainingMs <= 0,
+        };
       }
 
-      async function sendScan(){
-        const uid = localStorage.getItem('planspiel_user');
-        if(!uid) return alert('Register first');
-        const type = document.getElementById('scan-type').value;
-        const amount = document.getElementById('scan-amount').value;
-        const res = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user: uid, type, amount }) });
-        const j = await res.json();
-        if(res.ok){ document.getElementById('scan-result').textContent = 'OK — new balances: ' + JSON.stringify(j.user); setUserInfo(j.user); }
-        else { document.getElementById('scan-result').textContent = 'Error: ' + JSON.stringify(j); }
+      function startTimerTick() {
+        clearInterval(timerTick);
+        timerTick = setInterval(() => {
+          if (!currentUser) return;
+          currentUser = computeRemaining(currentUser);
+          updateTimerUI();
+        }, 1000);
       }
 
-      document.getElementById('btn-register').addEventListener('click', register);
-      document.getElementById('btn-scan').addEventListener('click', sendScan);
+      function updateTimerUI() {
+        if (!currentUser) return;
+        timerValueEl.textContent = formatCountdown(currentUser.remaining_ms);
+        timerHelpEl.textContent = currentUser.expired ? 'Timer ist abgelaufen' : 'Timer aktiv';
+        buyOxygenButton.disabled = currentUser.expired || currentUser.geld < 30;
+        expiredAlert.classList.toggle('hidden', !currentUser.expired);
+        expiredOverlay.classList.toggle('hidden', !currentUser.expired);
+      }
+
+      function showAdminScreen() {
+        if (!currentUser || !currentUser.is_admin) {
+          showToast('Nur Administratoren haben Zugriff.');
+          return;
+        }
+        adminScreen.classList.remove('hidden');
+        mainScreen.classList.add('hidden');
+      }
+
+      function hideAdminScreen() {
+        adminScreen.classList.add('hidden');
+        mainScreen.classList.remove('hidden');
+      }
+
+      function applyUserState(user) {
+        if (!user) {
+          currentUser = null;
+          timerValueEl.textContent = '--';
+          timerHelpEl.textContent = 'Registriere ein Gerät.';
+          buyOxygenButton.disabled = true;
+          moneyDisplay.value = '€0';
+          expiredAlert.classList.add('hidden');
+          announcementBanner.classList.add('hidden');
+          expiredOverlay.classList.add('hidden');
+          stopQrScanner();
+          hideAdminScreen();
+          clearInterval(timerTick);
+          timerTick = null;
+          return;
+        }
+
+        currentUser = computeRemaining(user);
+        updateTimerUI();
+        startTimerTick();
+
+        const hasAnnouncement = currentAnnouncement && currentAnnouncement.trim().length > 0;
+        announcementBanner.classList.toggle('hidden', !hasAnnouncement);
+        announcementText.textContent = currentAnnouncement;
+        moneyDisplay.value = `€${currentUser.geld}`;
+        moneyDisplay.title = currentUser.is_admin ? '5x tippen, um Admin zu aktivieren' : 'QR-Scanner starten';
+
+        if (!currentUser.is_admin && !adminScreen.classList.contains('hidden')) {
+          hideAdminScreen();
+        }
+      }
+
+      async function fetchAnnouncement() {
+        try {
+          const res = await fetch('/api/announcement');
+          if (!res.ok) return;
+          const json = await res.json();
+          currentAnnouncement = json.announcement || '';
+          if (currentUser) applyUserState(currentUser);
+        } catch (error) {
+          console.error('Announcement fetch failed', error);
+        }
+      }
+
+      async function loadUser() {
+        let userId = localStorage.getItem('planspiel_user');
+        if (!userId) {
+          return registerUser();
+        }
+
+        try {
+          const res = await fetch(`/api/user/${encodeURIComponent(userId)}`);
+          if (!res.ok) {
+            return registerUser();
+          }
+          const json = await res.json();
+          applyUserState(json.user);
+        } catch (error) {
+          console.error('User load failed', error);
+          registerUser();
+        }
+      }
+
+      async function registerUser() {
+        try {
+          const storedId = localStorage.getItem('planspiel_user');
+          const body = storedId ? { id: storedId } : {};
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const json = await res.json();
+          localStorage.setItem('planspiel_user', json.user.id);
+          applyUserState(json.user);
+          showToast('Gerät wurde registriert.');
+        } catch (error) {
+          console.error('Registration failed', error);
+          showToast('Registrierung fehlgeschlagen.');
+        }
+      }
+
+      async function buyOxygen() {
+        if (!currentUser) return;
+        try {
+          const res = await fetch('/api/buy-oxygen', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(json.error || 'Kauf fehlgeschlagen');
+            return;
+          }
+          applyUserState(json.user);
+          showToast('10 Minuten Sauerstoff hinzugefügt.');
+        } catch (error) {
+          console.error('Buy oxygen error', error);
+          showToast('Kauf fehlgeschlagen.');
+        }
+      }
+
+      async function scanQr() {
+        if (!currentUser || scanActive) return;
+        try {
+          scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          qrVideo.srcObject = scanStream;
+          scannerContainer.classList.remove('hidden');
+          scanActive = true;
+          scannerMessage.textContent = currentUser?.expired
+            ? 'Scanne den Heilungs-QR-Code.'
+            : 'Halte den QR-Code in den Rahmen.';
+          qrVideo.play();
+          requestAnimationFrame(checkQrFrame);
+        } catch (error) {
+          console.error('QR scanner start failed', error);
+          showToast('Kamera konnte nicht gestartet werden.');
+        }
+      }
+
+      function stopQrScanner() {
+        scanActive = false;
+        scannerContainer.classList.add('hidden');
+        if (scanStream) {
+          scanStream.getTracks().forEach(track => track.stop());
+          scanStream = null;
+        }
+      }
+
+      async function submitQrCode(code) {
+        if (!currentUser) return;
+        const trimmedCode = String(code).trim();
+        if (!trimmedCode) {
+          showToast('Ungültiger QR-Code.');
+          return;
+        }
+        try {
+          const res = await fetch('/api/qr-scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id, code: trimmedCode }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(json.error || 'Scan fehlgeschlagen');
+            return;
+          }
+          applyUserState(json.user);
+          if (currentUser && !currentUser.expired) {
+            expiredOverlay.classList.add('hidden');
+          }
+          showToast(json.message || 'Scan erfolgreich.');
+          if (json.message && json.message.includes('Minuten Sauerstoff')) {
+            alert(json.message);
+          }
+        } catch (error) {
+          console.error('QR scan failed', error);
+          showToast('Scan fehlgeschlagen.');
+        }
+      }
+
+      function checkQrFrame() {
+        if (!scanActive) return;
+        if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+          qrCanvas.width = qrVideo.videoWidth;
+          qrCanvas.height = qrVideo.videoHeight;
+          const ctx = qrCanvas.getContext('2d');
+          ctx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
+          const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+          if (code && code.data) {
+            stopQrScanner();
+            submitQrCode(code.data);
+            return;
+          }
+        }
+        requestAnimationFrame(checkQrFrame);
+      }
+
+      async function saveAnnouncement() {
+        if (!currentUser || !currentUser.is_admin) return;
+        const text = announcementInput.value.trim();
+        try {
+          const res = await fetch('/api/announcement', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id, text }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(json.error || 'Aktualisierung fehlgeschlagen');
+            return;
+          }
+          currentAnnouncement = json.announcement;
+          applyUserState(currentUser);
+          showToast('Ankündigung gespeichert.');
+        } catch (error) {
+          console.error('Announcement save failed', error);
+          showToast('Aktualisierung fehlgeschlagen.');
+        }
+      }
+
+      async function triggerAdminLogin() {
+        adminTapCount += 1;
+        clearTimeout(adminTapTimer);
+        adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 1200);
+        if (adminTapCount < 5) return;
+        adminTapCount = 0;
+
+        const password = prompt('Admin-Passwort eingeben (admin123)');
+        if (!password) return;
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser?.id, password }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast('Falsches Passwort.');
+            return;
+          }
+          applyUserState(json.user);
+          showAdminScreen();
+          alert('Admin-Passwort korrekt. Admin-Modus aktiviert.');
+          showToast('Admin-Modus aktiviert.');
+        } catch (error) {
+          console.error('Admin login failed', error);
+          showToast('Admin-Anmeldung fehlgeschlagen.');
+        }
+      }
+
+      buyOxygenButton.addEventListener('click', buyOxygen);
+      scanQrButton.addEventListener('click', scanQr);
+      stopScannerButton.addEventListener('click', stopQrScanner);
+      saveAnnouncementButton.addEventListener('click', saveAnnouncement);
+      moneyDisplay.addEventListener('click', triggerAdminLogin);
+      adminBackButton.addEventListener('click', hideAdminScreen);
+
       loadUser();
+      fetchAnnouncement();
+      document.body.style.visibility = 'visible';
+      setInterval(async () => {
+        await loadUser();
+        await fetchAnnouncement();
+      }, 60000);
     </script>
   </body>
 </html>
