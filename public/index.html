@@ -289,6 +289,62 @@
         font-size: 0.95rem;
       }
 
+      .announcement-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.85);
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        z-index: 50;
+      }
+
+      .announcement-modal.hidden {
+        display: none !important;
+      }
+
+      .announcement-card {
+        width: min(100%, 480px);
+        border-radius: 32px;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(59, 130, 246, 0.08));
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        text-align: center;
+        color: #0f172a;
+      }
+
+      .announcement-card h2 {
+        margin: 0 0 1rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1e40af;
+      }
+
+      .announcement-card p {
+        margin: 1rem 0;
+        line-height: 1.6;
+        color: #475569;
+      }
+
+      .announcement-ok-button {
+        margin-top: 1.5rem;
+        padding: 0.85rem 2rem;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .announcement-ok-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 30px rgba(37, 99, 235, 0.18);
+      }
+
       @media (max-width: 540px) {
         body { padding: 0.75rem; }
         .top-actions,
@@ -365,6 +421,14 @@
       </div>
     </div>
 
+    <div id="announcementModal" class="announcement-modal hidden">
+      <div class="announcement-card">
+        <h2>📢 Ankündigung</h2>
+        <p id="announcementModalText"></p>
+        <button id="announcementOkButton" class="announcement-ok-button">Verstanden</button>
+      </div>
+    </div>
+
     <div id="toast" class="toast"></div>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
@@ -389,9 +453,13 @@
       const adminBackButton = document.getElementById('adminBackButton');
       const moneyDisplay = document.getElementById('moneyDisplay');
       const expiredOverlay = document.getElementById('expiredOverlay');
+      const announcementModal = document.getElementById('announcementModal');
+      const announcementModalText = document.getElementById('announcementModalText');
+      const announcementOkButton = document.getElementById('announcementOkButton');
 
       let currentUser = null;
       let currentAnnouncement = '';
+      let lastShownAnnouncement = '';
       let adminTapCount = 0;
       let adminTapTimer = null;
       let scanStream = null;
@@ -497,7 +565,16 @@
           const res = await fetch('/api/announcement');
           if (!res.ok) return;
           const json = await res.json();
-          currentAnnouncement = json.announcement || '';
+          const newAnnouncement = json.announcement || '';
+          
+          // Detect new announcement
+          if (newAnnouncement && newAnnouncement !== lastShownAnnouncement && newAnnouncement.trim().length > 0) {
+            lastShownAnnouncement = newAnnouncement;
+            announcementModalText.textContent = newAnnouncement;
+            announcementModal.classList.remove('hidden');
+          }
+          
+          currentAnnouncement = newAnnouncement;
           if (currentUser) applyUserState(currentUser);
         } catch (error) {
           console.error('Announcement fetch failed', error);
@@ -699,6 +776,9 @@
       saveAnnouncementButton.addEventListener('click', saveAnnouncement);
       moneyDisplay.addEventListener('click', triggerAdminLogin);
       adminBackButton.addEventListener('click', hideAdminScreen);
+      announcementOkButton.addEventListener('click', () => {
+        announcementModal.classList.add('hidden');
+      });
 
       loadUser();
       fetchAnnouncement();
