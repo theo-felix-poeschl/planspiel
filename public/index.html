@@ -567,15 +567,22 @@
           const json = await res.json();
           const newAnnouncement = json.announcement || '';
           
-          // Detect new announcement
+          // Detect new announcement and show modal
           if (newAnnouncement && newAnnouncement !== lastShownAnnouncement && newAnnouncement.trim().length > 0) {
             lastShownAnnouncement = newAnnouncement;
             announcementModalText.textContent = newAnnouncement;
             announcementModal.classList.remove('hidden');
           }
           
+          // Update stored announcement without affecting timer
           currentAnnouncement = newAnnouncement;
-          if (currentUser) applyUserState(currentUser);
+          
+          // Only update the banner if we have a user
+          if (currentUser) {
+            const hasAnnouncement = currentAnnouncement && currentAnnouncement.trim().length > 0;
+            announcementBanner.classList.toggle('hidden', !hasAnnouncement);
+            announcementText.textContent = currentAnnouncement;
+          }
         } catch (error) {
           console.error('Announcement fetch failed', error);
         }
