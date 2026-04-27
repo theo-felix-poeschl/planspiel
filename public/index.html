@@ -137,6 +137,61 @@
         padding: 0;
       }
 
+      .button {
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 0.95rem 1.15rem;
+        font-weight: 800;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        box-shadow: 0 16px 44px rgba(37, 99, 235, 0.25);
+        cursor: pointer;
+        transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease, opacity 140ms ease;
+      }
+
+      .button:hover { transform: translateY(-1px); filter: brightness(1.02); }
+      .button:active { transform: translateY(0); filter: brightness(0.98); }
+      .button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+      .button.secondary {
+        color: #0f172a;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+      }
+
+      .button.danger {
+        color: #ffffff;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 16px 44px rgba(220, 38, 38, 0.22);
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+        pointer-events: none;
+        max-width: min(92vw, 520px);
+        padding: 0.85rem 1.05rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.92);
+        color: #f8fafc;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        transition: opacity 160ms ease, transform 160ms ease;
+        z-index: 80;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
       .alert {
         margin-top: 0.5rem;
         padding: 0.95rem 1rem;
@@ -275,6 +330,83 @@
         color: #0f172a;
       }
 
+      .admin-shell {
+        flex: 1;
+        display: grid;
+        place-items: center;
+        padding: 0.5rem 0 1rem;
+      }
+
+      .admin-panel {
+        width: min(100%, 620px);
+        border-radius: 28px;
+        padding: 1.25rem 1.15rem;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+        display: grid;
+        gap: 1rem;
+      }
+
+      .admin-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .admin-title {
+        font-size: 1.2rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+      }
+
+      .admin-meta {
+        margin-top: 0.25rem;
+        color: #64748b;
+        font-size: 0.95rem;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(15, 23, 42, 0.04);
+        color: #0f172a;
+        white-space: nowrap;
+      }
+
+      .pill.live {
+        background: rgba(220, 38, 38, 0.1);
+        border-color: rgba(220, 38, 38, 0.25);
+        color: #b91c1c;
+      }
+
+      .field-group {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .field-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.75rem;
+      }
+
+      label {
+        font-weight: 900;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+      }
+
       .admin-content {
         display: grid;
         gap: 1rem;
@@ -283,11 +415,65 @@
       textarea {
         min-height: 180px;
         resize: vertical;
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        background: rgba(248, 250, 252, 0.9);
+        color: #0f172a;
+        outline: none;
+        font-size: 1rem;
+        line-height: 1.5;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+
+      textarea:focus {
+        border-color: rgba(37, 99, 235, 0.55);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), inset 0 1px 2px rgba(15, 23, 42, 0.06);
+        background: #ffffff;
       }
 
       .helper-text {
         color: #475569;
         font-size: 0.95rem;
+      }
+
+      .counter {
+        color: #64748b;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .admin-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .admin-preview {
+        display: grid;
+        gap: 0.5rem;
+        padding-top: 0.25rem;
+      }
+
+      .preview-label {
+        color: #64748b;
+        font-weight: 900;
+        font-size: 0.85rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .preview-box {
+        border-radius: 18px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(15, 23, 42, 0.03);
+        padding: 0.85rem 1rem;
+        color: #0f172a;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+        min-height: 56px;
       }
 
       .announcement-modal {
@@ -340,6 +526,7 @@
         .back-button { width: 52px; height: 52px; }
         .money-field { min-width: 120px; }
         .scanner-content { width: 100%; }
+        .admin-panel { padding: 1.05rem 1rem; }
       }
 
     </style>
@@ -398,13 +585,37 @@
           <div style="width: 56px;"></div>
         </div>
 
-        <div class="admin-content">
-          <div class="field-group">
-            <label for="announcementInput">Ankündigung</label>
-            <textarea id="announcementInput" placeholder="Sicherheitsalarm..."></textarea>
+        <div class="admin-shell">
+          <div class="admin-panel">
+            <div class="admin-header">
+              <div>
+                <div class="admin-title">Ankündigungen</div>
+                <div id="adminMeta" class="admin-meta"></div>
+              </div>
+              <div id="adminStatusPill" class="pill">INAKTIV</div>
+            </div>
+
+            <div class="admin-content">
+              <div class="field-group">
+                <div class="field-row">
+                  <label for="announcementInput">Text</label>
+                  <span id="announcementCount" class="counter">0/240</span>
+                </div>
+                <textarea id="announcementInput" placeholder="Sicherheitsalarm..." maxlength="240"></textarea>
+                <div class="helper-text">Tipp: Leer speichern/löschen beendet die Ankündigung.</div>
+              </div>
+
+              <div class="admin-actions">
+                <button id="saveAnnouncementButton" class="button">Speichern</button>
+                <button id="deleteAnnouncementButton" class="button danger">Löschen</button>
+              </div>
+
+              <div class="admin-preview">
+                <div class="preview-label">Aktuell live</div>
+                <div id="announcementPreview" class="preview-box">—</div>
+              </div>
+            </div>
           </div>
-          <button id="saveAnnouncementButton" class="button">Ankündigung speichern</button>
-          <button id="deleteAnnouncementButton" class="button secondary">Ankündigung löschen</button>
         </div>
       </div>
     </div>
@@ -439,6 +650,10 @@
       const saveAnnouncementButton = document.getElementById('saveAnnouncementButton');
       const deleteAnnouncementButton = document.getElementById('deleteAnnouncementButton');
       const adminBackButton = document.getElementById('adminBackButton');
+      const adminMeta = document.getElementById('adminMeta');
+      const adminStatusPill = document.getElementById('adminStatusPill');
+      const announcementCount = document.getElementById('announcementCount');
+      const announcementPreview = document.getElementById('announcementPreview');
       const moneyDisplay = document.getElementById('moneyDisplay');
       const expiredOverlay = document.getElementById('expiredOverlay');
       const healScanButton = document.getElementById('healScanButton');
@@ -546,13 +761,52 @@
           showToast('Nur Administratoren haben Zugriff.');
           return;
         }
+        if (announcementInput) {
+          announcementInput.value = currentAnnouncement || '';
+        }
         adminScreen.classList.remove('hidden');
         mainScreen.classList.add('hidden');
+        updateAdminUI();
       }
 
       function hideAdminScreen() {
         adminScreen.classList.add('hidden');
         mainScreen.classList.remove('hidden');
+      }
+
+      function formatDeviceId(value) {
+        if (typeof value !== 'string' || value.trim().length === 0) return '';
+        const trimmed = value.trim();
+        if (trimmed.length <= 14) return trimmed;
+        return `${trimmed.slice(0, 8)}…${trimmed.slice(-4)}`;
+      }
+
+      function updateAdminUI() {
+        if (announcementInput && announcementCount) {
+          const max = Number.parseInt(announcementInput.getAttribute('maxlength') || '0', 10);
+          const length = (announcementInput.value || '').length;
+          announcementCount.textContent = max > 0 ? `${length}/${max}` : String(length);
+        }
+
+        const liveText = (currentAnnouncement || '').trim();
+        const isLive = liveText.length > 0;
+
+        if (adminStatusPill) {
+          adminStatusPill.textContent = isLive ? 'LIVE' : 'INAKTIV';
+          adminStatusPill.classList.toggle('live', isLive);
+        }
+
+        if (announcementPreview) {
+          announcementPreview.textContent = isLive ? currentAnnouncement : '—';
+        }
+
+        if (adminMeta) {
+          if (currentUser && isAdmin(currentUser)) {
+            adminMeta.textContent = `Gerät: ${formatDeviceId(currentUser.id)}`;
+          } else {
+            adminMeta.textContent = '';
+          }
+        }
       }
 
       function applyUserState(user) {
@@ -593,6 +847,8 @@
         if (!isAdmin(currentUser) && !adminScreen.classList.contains('hidden')) {
           hideAdminScreen();
         }
+
+        updateAdminUI();
       }
 
       async function fetchAnnouncement() {
@@ -625,6 +881,7 @@
 
         // Update stored announcement without affecting timer
         currentAnnouncement = newAnnouncement;
+        updateAdminUI();
 
         if (!isActive) {
           announcementModal.classList.add('hidden');
@@ -904,6 +1161,7 @@
           }
           currentAnnouncement = json.announcement;
           applyUserState(currentUser);
+          updateAdminUI();
           showToast('Ankündigung gespeichert.');
         } catch (error) {
           console.error('Announcement save failed', error);
@@ -927,6 +1185,7 @@
           announcementInput.value = '';
           currentAnnouncement = json.announcement;
           applyUserState(currentUser);
+          updateAdminUI();
           showToast('Ankündigung gelöscht.');
         } catch (error) {
           console.error('Announcement delete failed', error);
@@ -968,6 +1227,7 @@
       scanQrButton.addEventListener('click', scanQr);
       healScanButton.addEventListener('click', scanQr);
       stopScannerButton.addEventListener('click', stopQrScanner);
+      if (announcementInput) announcementInput.addEventListener('input', updateAdminUI);
       saveAnnouncementButton.addEventListener('click', saveAnnouncement);
       deleteAnnouncementButton.addEventListener('click', deleteAnnouncement);
       moneyDisplay.addEventListener('click', triggerAdminLogin);
