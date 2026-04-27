@@ -170,6 +170,23 @@
         box-shadow: 0 16px 44px rgba(220, 38, 38, 0.22);
       }
 
+      @keyframes readyPulse {
+        0%, 100% { box-shadow: 0 18px 55px rgba(34, 197, 94, 0.28); }
+        50% { box-shadow: 0 22px 75px rgba(34, 197, 94, 0.38); }
+      }
+
+      .button.ready {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        box-shadow: 0 18px 55px rgba(34, 197, 94, 0.28);
+        animation: readyPulse 1.6s ease-in-out infinite;
+      }
+
+      .button.ready:hover { filter: brightness(1.03); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .button.ready { animation: none; }
+      }
+
       .toast {
         position: fixed;
         left: 50%;
@@ -516,6 +533,9 @@
 
       .buyOxygenButton {
         font-size: larger;
+        width: min(100%, 460px);
+        padding-left: 1.35rem;
+        padding-right: 1.35rem;
       }
 
       @media (max-width: 540px) {
@@ -553,9 +573,9 @@
 	          </div>
 	        </div>
 
-        <div class="bottom-actions">
-          <button id="buyOxygenButton" class="buyOxygenButton">+ Sauerstoff kaufen</button>
-        </div>
+	        <div class="bottom-actions">
+	          <button id="buyOxygenButton" class="button secondary buyOxygenButton">+ Sauerstoff kaufen</button>
+	        </div>
 
         <div id="expiredOverlay" class="expired-overlay hidden">
           <div class="dead-card">
@@ -670,34 +690,85 @@
       let timerPausedByAdmin = false;
       let adminTapCount = 0;
       let adminTapTimer = null;
-      let scanStream = null;
-      let scanActive = false;
-      let timerTick = null;
-      let oxygenPurchaseCost = 30;
-      let oxygenPurchaseMinutes = 10;
+	      let scanStream = null;
+	      let scanActive = false;
+	      let timerTick = null;
+	      let oxygenPurchaseCost = 30;
+	      let oxygenPurchaseMinutes = 10;
+	      let lastBuyButtonKey = '';
 
-      function isAdmin(user) {
-        return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
-      }
+	      function isAdmin(user) {
+	        return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
+	      }
 
-      async function loadClientConfig() {
-        try {
-          const res = await fetch('/api/config');
-          if (!res.ok) return;
-          const json = await res.json();
+	      function updateBuyButtonUI() {
+	        if (!buyOxygenButton) return;
 
-          if (Number.isFinite(json.oxygenPurchaseCost)) oxygenPurchaseCost = json.oxygenPurchaseCost;
-          if (Number.isFinite(json.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = json.oxygenPurchaseMinutes;
+	        const user = currentUser;
+	        const hasUser = Boolean(user);
+	        const admin = hasUser && isAdmin(user);
+	        const expired = hasUser && Boolean(user.expired);
+	        const money = hasUser && Number.isFinite(user.geld) ? user.geld : 0;
+	        const missing = Math.max(0, oxygenPurchaseCost - money);
+	        const canAfford = hasUser && !admin && !expired && money >= oxygenPurchaseCost;
 
-          if (buyOxygenButton) {
-            buyOxygenButton.textContent = `+ ${oxygenPurchaseMinutes} Min. Sauerstoff (${oxygenPurchaseCost}€)`;
-          }
+	        const key = `${hasUser}|${admin}|${expired}|${money}|${oxygenPurchaseCost}|${oxygenPurchaseMinutes}|${canAfford}`;
+	        if (key === lastBuyButtonKey) return;
+	        lastBuyButtonKey = key;
 
-          if (currentUser) updateTimerUI();
-        } catch (error) {
-          console.error('Config load failed', error);
-        }
-      }
+	        buyOxygenButton.classList.toggle('ready', canAfford);
+	        buyOxygenButton.classList.toggle('secondary', !canAfford);
+
+	        if (!hasUser) {
+	          buyOxygenButton.disabled = true;
+	          buyOxygenButton.textContent = `+ ${oxygenPurchaseMinutes} Min. (${oxygenPurchaseCost}€)`;
+	          buyOxygenButton.title = 'Registriere ein Gerät.';
+	          buyOxygenButton.setAttribute('aria-label', 'Sauerstoff kaufen (Gerät nicht registriert)');
+	          return;
+	        }
+
+	        if (admin) {
+	          buyOxygenButton.disabled = true;
+	          buyOxygenButton.textContent = 'Admin: unsterblich';
+	          buyOxygenButton.title = 'Admins brauchen keinen Sauerstoff.';
+	          buyOxygenButton.setAttribute('aria-label', 'Admin: unsterblich');
+	          return;
+	        }
+
+	        if (expired) {
+	          buyOxygenButton.disabled = true;
+	          buyOxygenButton.textContent = 'Sauerstoff abgelaufen';
+	          buyOxygenButton.title = 'Heile zuerst in der Krankenstation.';
+	          buyOxygenButton.setAttribute('aria-label', 'Sauerstoff abgelaufen');
+	          return;
+	        }
+
+	        buyOxygenButton.disabled = !canAfford;
+	        if (canAfford) {
+	          buyOxygenButton.textContent = `+ ${oxygenPurchaseMinutes} Min. Sauerstoff kaufen (${oxygenPurchaseCost}€)`;
+	          buyOxygenButton.title = 'Tippen, um Sauerstoff zu kaufen.';
+	          buyOxygenButton.setAttribute('aria-label', `Sauerstoff kaufen für ${oxygenPurchaseCost} Euro`);
+	        } else {
+	          buyOxygenButton.textContent = `+ ${oxygenPurchaseMinutes} Min. (${oxygenPurchaseCost}€) · fehlen ${missing}€`;
+	          buyOxygenButton.title = `Es fehlen ${missing}€ zum Kauf.`;
+	          buyOxygenButton.setAttribute('aria-label', `Nicht genug Geld: es fehlen ${missing} Euro`);
+	        }
+	      }
+
+	      async function loadClientConfig() {
+	        try {
+	          const res = await fetch('/api/config');
+	          if (!res.ok) return;
+	          const json = await res.json();
+
+	          if (Number.isFinite(json.oxygenPurchaseCost)) oxygenPurchaseCost = json.oxygenPurchaseCost;
+	          if (Number.isFinite(json.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = json.oxygenPurchaseMinutes;
+	          updateBuyButtonUI();
+	          if (currentUser) updateTimerUI();
+	        } catch (error) {
+	          console.error('Config load failed', error);
+	        }
+	      }
 
       function showToast(message) {
         toastEl.textContent = message;
@@ -758,24 +829,24 @@
         }, 1000);
       }
 
-      function updateTimerUI() {
-        if (!currentUser) return;
-        if (isAdmin(currentUser)) {
-          timerValueEl.textContent = '∞';
-          timerHelpEl.textContent = 'Admin ist unsterblich';
-          buyOxygenButton.disabled = true;
-          expiredAlert.classList.add('hidden');
-          expiredOverlay.classList.add('hidden');
-          scanQrButton.style.display = '';
-          return;
-        }
-        timerValueEl.textContent = formatCountdown(currentUser.remaining_ms);
-        timerHelpEl.textContent = currentUser.expired ? 'Timer ist abgelaufen' : 'Timer aktiv';
-        buyOxygenButton.disabled = currentUser.expired || currentUser.geld < oxygenPurchaseCost;
-        expiredAlert.classList.toggle('hidden', !currentUser.expired);
-        expiredOverlay.classList.toggle('hidden', !currentUser.expired);
-        scanQrButton.style.display = currentUser.expired ? 'none' : '';
-      }
+	      function updateTimerUI() {
+	        if (!currentUser) return;
+	        if (isAdmin(currentUser)) {
+	          timerValueEl.textContent = '∞';
+	          timerHelpEl.textContent = 'Admin ist unsterblich';
+	          updateBuyButtonUI();
+	          expiredAlert.classList.add('hidden');
+	          expiredOverlay.classList.add('hidden');
+	          scanQrButton.style.display = '';
+	          return;
+	        }
+	        timerValueEl.textContent = formatCountdown(currentUser.remaining_ms);
+	        timerHelpEl.textContent = currentUser.expired ? 'Timer ist abgelaufen' : 'Timer aktiv';
+	        updateBuyButtonUI();
+	        expiredAlert.classList.toggle('hidden', !currentUser.expired);
+	        expiredOverlay.classList.toggle('hidden', !currentUser.expired);
+	        scanQrButton.style.display = currentUser.expired ? 'none' : '';
+	      }
 
       function showAdminScreen() {
         if (!currentUser || !isAdmin(currentUser)) {
@@ -830,17 +901,17 @@
         }
       }
 
-      function applyUserState(user) {
-        if (!user) {
-          currentUser = null;
-          timerValueEl.textContent = '--';
-          timerHelpEl.textContent = 'Registriere ein Gerät.';
-          buyOxygenButton.disabled = true;
-          moneyDisplay.value = '€0';
-          expiredAlert.classList.add('hidden');
-          announcementBanner.classList.add('hidden');
-          expiredOverlay.classList.add('hidden');
-          stopQrScanner();
+	      function applyUserState(user) {
+	        if (!user) {
+	          currentUser = null;
+	          timerValueEl.textContent = '--';
+	          timerHelpEl.textContent = 'Registriere ein Gerät.';
+	          updateBuyButtonUI();
+	          moneyDisplay.value = '€0';
+	          expiredAlert.classList.add('hidden');
+	          announcementBanner.classList.add('hidden');
+	          expiredOverlay.classList.add('hidden');
+	          stopQrScanner();
           hideAdminScreen();
           clearInterval(timerTick);
           timerTick = null;
@@ -1236,7 +1307,7 @@
           }
           applyUserState(json.user);
           showAdminScreen();
-          alert('Admin-Passwort korrekt. Admin-Modus aktiviert.');
+          /* alert('Admin-Passwort korrekt. Admin-Modus aktiviert.'); */
           showToast('Admin-Modus aktiviert.');
         } catch (error) {
           console.error('Admin login failed', error);
