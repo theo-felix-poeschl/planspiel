@@ -1,6 +1,6 @@
 {
   "oxygenPurchaseMinutes": 10,
-  "oxygenPurchaseCost": 30,
+  "oxygenPurchaseCost": 50,
   "healCodeMinutes": 10,
   "startingMoney": 0,
   "startingOxygenMinutes": 10

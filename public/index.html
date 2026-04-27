@@ -673,9 +673,30 @@
       let scanStream = null;
       let scanActive = false;
       let timerTick = null;
+      let oxygenPurchaseCost = 30;
+      let oxygenPurchaseMinutes = 10;
 
       function isAdmin(user) {
         return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
+      }
+
+      async function loadClientConfig() {
+        try {
+          const res = await fetch('/api/config');
+          if (!res.ok) return;
+          const json = await res.json();
+
+          if (Number.isFinite(json.oxygenPurchaseCost)) oxygenPurchaseCost = json.oxygenPurchaseCost;
+          if (Number.isFinite(json.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = json.oxygenPurchaseMinutes;
+
+          if (buyOxygenButton) {
+            buyOxygenButton.textContent = `+ ${oxygenPurchaseMinutes} Min. Sauerstoff (${oxygenPurchaseCost}€)`;
+          }
+
+          if (currentUser) updateTimerUI();
+        } catch (error) {
+          console.error('Config load failed', error);
+        }
       }
 
       function showToast(message) {
@@ -750,7 +771,7 @@
         }
         timerValueEl.textContent = formatCountdown(currentUser.remaining_ms);
         timerHelpEl.textContent = currentUser.expired ? 'Timer ist abgelaufen' : 'Timer aktiv';
-        buyOxygenButton.disabled = currentUser.expired || currentUser.geld < 30;
+        buyOxygenButton.disabled = currentUser.expired || currentUser.geld < oxygenPurchaseCost;
         expiredAlert.classList.toggle('hidden', !currentUser.expired);
         expiredOverlay.classList.toggle('hidden', !currentUser.expired);
         scanQrButton.style.display = currentUser.expired ? 'none' : '';
@@ -1061,7 +1082,7 @@
             return;
           }
           applyUserState(json.user);
-          showToast('10 Minuten Sauerstoff hinzugefügt.');
+          showToast(`${oxygenPurchaseMinutes} Minuten Sauerstoff hinzugefügt.`);
         } catch (error) {
           console.error('Buy oxygen error', error);
           showToast('Kauf fehlgeschlagen.');
@@ -1237,6 +1258,7 @@
       });
 
       loadUser();
+      loadClientConfig();
       fetchAnnouncement();
       startAnnouncementStream();
       document.body.style.visibility = 'visible';

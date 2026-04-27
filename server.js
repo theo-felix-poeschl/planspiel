@@ -76,6 +76,16 @@ app.get('/api/ping', (req, res) => {
   res.json({ ok: true, time: new Date().toISOString(), db_instance_id: db.getConfig('db_instance_id') || '' });
 });
 
+app.get('/api/config', (req, res) => {
+  res.json({
+    oxygenPurchaseMinutes: config.oxygenPurchaseMinutes,
+    oxygenPurchaseCost: config.oxygenPurchaseCost,
+    healCodeMinutes: config.healCodeMinutes,
+    startingMoney: config.startingMoney,
+    startingOxygenMinutes: config.startingOxygenMinutes,
+  });
+});
+
 app.post('/api/register', (req, res) => {
   const pauseState = getPauseState();
   const effectiveNow = getEffectiveNow(pauseState);
