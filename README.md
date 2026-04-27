@@ -29,6 +29,14 @@ Notes on hosting for multiple mobile devices:
 
 Firewall: ensure port 3000 (or chosen PORT) is open on the host/firewall.
 
+Device registration:
+- Each device gets an id stored in `localStorage` under `planspiel_user`.
+- The server exposes a `db_instance_id`; if the sqlite DB file is deleted/reset, clients auto re-register once (same `planspiel_user`) and store the new `planspiel_db_instance_id`.
+
+Announcements:
+- Clients subscribe to `/api/announcement/stream` via Server-Sent Events (SSE) so admin updates are pushed to all devices immediately.
+- If SSE is unavailable, the UI falls back to polling `/api/announcement` every 10 seconds.
+
 If you want, I can:
 - containerize this into a Dockerfile and provide deploy steps,
 - or set up a simple GitHub→Render deployment example.

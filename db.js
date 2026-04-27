@@ -45,12 +45,20 @@ function init() {
     )`
   ).run();
 
+  // Stable identifier for this DB instance. If the sqlite file gets deleted,
+  // a fresh DB will get a new id so clients can safely auto re-register.
+  if (!getConfig('db_instance_id')) {
+    setConfig('db_instance_id', crypto.randomUUID());
+  }
+
   setConfig('admin_password', 'admin123');
   setConfig('announcement_text', getConfig('announcement_text') || '');
+  setConfig('announcement_pause_since', getConfig('announcement_pause_since') || '');
+  setConfig('announcement_last_changed_at', getConfig('announcement_last_changed_at') || '');
 }
 
-function createUser(id, startingMoney = 0, startingOxygenMinutes = 0) {
-  const now = new Date();
+function createUser(id, startingMoney = 0, startingOxygenMinutes = 0, nowOverride = null) {
+  const now = nowOverride instanceof Date ? nowOverride : new Date();
   const oxygenEnd = new Date(now.getTime() + startingOxygenMinutes * 60000).toISOString();
   db.prepare(
     'INSERT INTO users (id, geld, sauerstoff, oxygen_end, is_admin, created_at) VALUES (?, ?, ?, ?, 0, ?)'
@@ -70,10 +78,10 @@ function addMoney(id, amount) {
   return getUser(id);
 }
 
-function addOxygen(id, minutes = 10) {
+function addOxygen(id, minutes = 10, nowOverride = null) {
   const user = getUser(id);
   if (!user) return null;
-  const now = new Date();
+  const now = nowOverride instanceof Date ? nowOverride : new Date();
   const currentEnd = user.oxygen_end ? new Date(user.oxygen_end) : now;
   const baseline = currentEnd > now ? currentEnd : now;
   const newEnd = new Date(baseline.getTime() + minutes * 60000).toISOString();
@@ -86,16 +94,41 @@ function canBuyOxygen(id, cost) {
   return user && user.geld >= cost;
 }
 
-function buyOxygen(id, minutes = 10, cost = 30) {
+function buyOxygen(id, minutes = 10, cost = 30, nowOverride = null) {
   const user = getUser(id);
   if (!user) return null;
   if (user.geld < cost) return null;
-  const now = new Date();
+  const now = nowOverride instanceof Date ? nowOverride : new Date();
   const currentEnd = user.oxygen_end ? new Date(user.oxygen_end) : now;
   const baseline = currentEnd > now ? currentEnd : now;
   const newEnd = new Date(baseline.getTime() + minutes * 60000).toISOString();
   db.prepare('UPDATE users SET geld = geld - ?, oxygen_end = ? WHERE id = ?').run(cost, newEnd, id);
   return getUser(id);
+}
+
+function shiftAllOxygenEnds(deltaMs) {
+  if (!Number.isFinite(deltaMs)) throw new Error('invalid deltaMs');
+  const roundedDeltaMs = Math.round(deltaMs);
+  if (roundedDeltaMs === 0) return 0;
+
+  const rows = db.prepare('SELECT id, oxygen_end FROM users WHERE oxygen_end IS NOT NULL').all();
+  const update = db.prepare('UPDATE users SET oxygen_end = ? WHERE id = ?');
+
+  const tx = db.transaction(() => {
+    let changes = 0;
+    for (const row of rows) {
+      if (!row.oxygen_end) continue;
+      const parsed = new Date(row.oxygen_end);
+      const time = parsed.getTime();
+      if (!Number.isFinite(time)) continue;
+      const shifted = new Date(time + roundedDeltaMs).toISOString();
+      update.run(shifted, row.id);
+      changes += 1;
+    }
+    return changes;
+  });
+
+  return tx();
 }
 
 function setAdmin(id) {
@@ -121,6 +154,7 @@ module.exports = {
   addOxygen,
   canBuyOxygen,
   buyOxygen,
+  shiftAllOxygenEnds,
   setAdmin,
   adminPasswordMatches,
   getConfig,
