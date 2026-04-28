@@ -58,6 +58,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 0.75rem;
       }
 
       .top-actions {
@@ -80,6 +81,58 @@
         cursor: pointer;
       }
 
+      .camera-button {
+        position: relative;
+        z-index: 30;
+        overflow: hidden;
+        color: #ffffff;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 42%),
+          linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 18px 55px rgba(37, 99, 235, 0.34);
+      }
+
+      .scan-icon {
+        width: 28px;
+        height: 28px;
+        display: block;
+        background: currentColor;
+        -webkit-mask-image: url('/pictures/qr-code-icon.svg');
+        mask-image: url('/pictures/qr-code-icon.svg');
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.22));
+      }
+
+      .camera-button::after {
+        content: '';
+        position: absolute;
+        inset: -60%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+        transform: rotate(25deg) translateX(-35%);
+        opacity: 0.7;
+        transition: transform 220ms ease, opacity 220ms ease;
+        pointer-events: none;
+      }
+
+      .camera-button:hover::after {
+        transform: rotate(25deg) translateX(35%);
+        opacity: 0.9;
+      }
+
+      .camera-button:active { filter: brightness(0.98); }
+
+      .camera-button:focus-visible,
+      .back-button:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18), 0 18px 55px rgba(37, 99, 235, 0.34);
+      }
+
       .camera-button:hover,
       .back-button:hover {
         transform: translateY(-1px);
@@ -98,6 +151,38 @@
         text-align: center;
         box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
         cursor: pointer;
+      }
+
+      .relationship-button {
+        min-width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        background: rgba(255,255,255,0.95);
+        color: #0f172a;
+        font-size: 1.55rem;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+        cursor: pointer;
+        transition: transform 140ms ease, box-shadow 140ms ease, color 140ms ease;
+      }
+
+      .relationship-button.married {
+        color: #db2777;
+        border-color: rgba(219, 39, 119, 0.22);
+        box-shadow: 0 16px 44px rgba(219, 39, 119, 0.15);
+      }
+
+      .relationship-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .relationship-button:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.14), 0 16px 44px rgba(219, 39, 119, 0.15);
       }
 
       .timer-container {
@@ -531,6 +616,101 @@
         color: #1e293b;
       }
 
+      .relationship-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.72);
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        z-index: 70;
+      }
+
+      .relationship-card {
+        width: min(100%, 420px);
+        border-radius: 24px;
+        padding: 1.25rem;
+        background: rgba(255,255,255,0.98);
+        border: 1px solid rgba(219, 39, 119, 0.14);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+        color: #0f172a;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .relationship-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .relationship-title {
+        font-size: 1.2rem;
+        font-weight: 900;
+      }
+
+      .relationship-status {
+        color: #64748b;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      .icon-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(15, 23, 42, 0.04);
+        color: #0f172a;
+        font-size: 1.35rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .code-box {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .code-value {
+        border-radius: 16px;
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        background: rgba(248, 250, 252, 0.95);
+        padding: 0.85rem 1rem;
+        text-align: center;
+        font-size: 1.45rem;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+        color: #0f172a;
+      }
+
+      .relationship-input {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        background: rgba(248, 250, 252, 0.95);
+        color: #0f172a;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+        font-weight: 800;
+        text-align: center;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .relationship-input:focus {
+        outline: none;
+        border-color: rgba(219, 39, 119, 0.55);
+        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.12);
+        background: #ffffff;
+      }
+
+      .relationship-actions {
+        display: grid;
+        gap: 0.75rem;
+      }
+
       .buyOxygenButton {
         font-size: larger;
         width: min(100%, 460px);
@@ -555,7 +735,10 @@
     <div class="page">
       <div id="mainScreen" class="screen">
         <div class="top-actions">
-          <button id="scanQrButton" class="camera-button" aria-label="QR-Code scannen">📷</button>
+          <button id="scanQrButton" class="camera-button" aria-label="QR-Code scannen" title="QR-Code scannen">
+            <span class="scan-icon" aria-hidden="true"></span>
+          </button>
+          <button id="relationshipButton" class="relationship-button" aria-label="Beziehung" title="Beziehung">♡</button>
           <input id="moneyDisplay" class="money-field" type="text" readonly value="€0" aria-label="Geld" />
         </div>
 
@@ -647,6 +830,33 @@
       </div>
     </div>
 
+    <div id="relationshipModal" class="relationship-modal hidden">
+      <div class="relationship-card">
+        <div class="relationship-header">
+          <div>
+            <div class="relationship-title">Beziehung</div>
+            <div id="relationshipStatus" class="relationship-status"></div>
+          </div>
+          <button id="closeRelationshipButton" class="icon-button" aria-label="Schließen" title="Schließen">×</button>
+        </div>
+
+        <div class="code-box">
+          <label for="ownMarriageCode">Dein Code</label>
+          <div id="ownMarriageCode" class="code-value">------</div>
+        </div>
+
+        <div id="partnerCodeGroup" class="code-box">
+          <label for="partnerCodeInput">Partner-Code</label>
+          <input id="partnerCodeInput" class="relationship-input" type="text" inputmode="text" maxlength="8" autocomplete="off" placeholder="ABC123" />
+        </div>
+
+        <div class="relationship-actions">
+          <button id="marryButton" class="button">Heiraten</button>
+          <button id="divorceButton" class="button danger hidden">Scheiden lassen</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast"></div>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
@@ -679,6 +889,15 @@
       const healScanButton = document.getElementById('healScanButton');
       const announcementModal = document.getElementById('announcementModal');
       const announcementModalText = document.getElementById('announcementModalText');
+      const relationshipButton = document.getElementById('relationshipButton');
+      const relationshipModal = document.getElementById('relationshipModal');
+      const closeRelationshipButton = document.getElementById('closeRelationshipButton');
+      const relationshipStatus = document.getElementById('relationshipStatus');
+      const ownMarriageCode = document.getElementById('ownMarriageCode');
+      const partnerCodeGroup = document.getElementById('partnerCodeGroup');
+      const partnerCodeInput = document.getElementById('partnerCodeInput');
+      const marryButton = document.getElementById('marryButton');
+      const divorceButton = document.getElementById('divorceButton');
 
       let currentUser = null;
       let currentAnnouncement = '';
@@ -686,6 +905,9 @@
       let announcementStream = null;
       let announcementStreamOpenTimeout = null;
       let announcementFallbackTimer = null;
+      let userStream = null;
+      let userStreamUserId = '';
+      let userStreamOpenTimeout = null;
       let timerPausedByAnnouncement = false;
       let timerPausedByAdmin = false;
       let adminTapCount = 0;
@@ -775,6 +997,67 @@
         toastEl.classList.add('show');
         clearTimeout(showToast._timeout);
         showToast._timeout = setTimeout(() => toastEl.classList.remove('show'), 2600);
+      }
+
+      function formatMarriageCode(code) {
+        if (typeof code !== 'string' || code.trim().length === 0) return '------';
+        return code.trim().toUpperCase();
+      }
+
+      function normalizeMarriageCode(value) {
+        return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+      }
+
+      function getMarriageErrorMessage(error) {
+        if (error === 'partner not found') return 'Partner-Code nicht gefunden.';
+        if (error === 'cannot marry self') return 'Du kannst dich nicht selbst heiraten.';
+        if (error === 'already married') return 'Eine Person ist bereits verheiratet.';
+        if (error === 'not married') return 'Du bist nicht verheiratet.';
+        return error || 'Aktion fehlgeschlagen.';
+      }
+
+      function updateRelationshipUI() {
+        const hasUser = Boolean(currentUser);
+        const married = Boolean(currentUser && currentUser.spouse_id);
+
+        if (relationshipButton) {
+          relationshipButton.disabled = !hasUser;
+          relationshipButton.classList.toggle('married', married);
+          relationshipButton.textContent = married ? '♥' : '♡';
+          relationshipButton.title = married ? 'Verheiratet' : 'Beziehung';
+          relationshipButton.setAttribute('aria-label', married ? 'Beziehung: verheiratet' : 'Beziehung');
+        }
+
+        if (!relationshipModal || relationshipModal.classList.contains('hidden')) return;
+
+        if (ownMarriageCode) {
+          ownMarriageCode.textContent = hasUser ? formatMarriageCode(currentUser.marriage_code) : '------';
+        }
+
+        if (relationshipStatus) {
+          relationshipStatus.textContent = married
+            ? `Verheiratet mit ${formatMarriageCode(currentUser.spouse_marriage_code)}. Geld wird gemeinsam genutzt.`
+            : 'Nicht verheiratet.';
+        }
+
+        if (partnerCodeGroup) partnerCodeGroup.classList.toggle('hidden', married);
+        if (marryButton) marryButton.classList.toggle('hidden', married);
+        if (divorceButton) divorceButton.classList.toggle('hidden', !married);
+      }
+
+      function openRelationshipModal() {
+        if (!currentUser) {
+          showToast('Gerät noch nicht registriert.');
+          return;
+        }
+        relationshipModal.classList.remove('hidden');
+        if (partnerCodeInput) partnerCodeInput.value = '';
+        updateRelationshipUI();
+        if (!currentUser.spouse_id && partnerCodeInput) partnerCodeInput.focus();
+      }
+
+      function closeRelationshipModal() {
+        relationshipModal.classList.add('hidden');
       }
 
       function formatCountdown(remainingMs) {
@@ -911,16 +1194,19 @@
 	          expiredAlert.classList.add('hidden');
 	          announcementBanner.classList.add('hidden');
 	          expiredOverlay.classList.add('hidden');
+	          updateRelationshipUI();
 	          stopQrScanner();
           hideAdminScreen();
           clearInterval(timerTick);
           timerTick = null;
           timerPausedByAnnouncement = false;
           timerPausedByAdmin = false;
+          stopUserStream();
           return;
         }
 
         currentUser = computeRemaining(user);
+        startUserStream(currentUser.id);
         updateTimerUI();
 
         if (currentUser && isAdmin(currentUser)) {
@@ -935,6 +1221,7 @@
         announcementText.textContent = currentAnnouncement;
         moneyDisplay.value = `€${currentUser.geld}`;
         moneyDisplay.title = isAdmin(currentUser) ? '5x tippen, um Admin zu aktivieren' : 'QR-Scanner starten';
+        updateRelationshipUI();
 
         if (!isAdmin(currentUser) && !adminScreen.classList.contains('hidden')) {
           hideAdminScreen();
@@ -1067,6 +1354,59 @@
         announcementFallbackTimer = null;
       }
 
+      function stopUserStream() {
+        if (userStreamOpenTimeout) clearTimeout(userStreamOpenTimeout);
+        userStreamOpenTimeout = null;
+        if (userStream) {
+          try { userStream.close(); } catch {}
+        }
+        userStream = null;
+        userStreamUserId = '';
+      }
+
+      function startUserStream(userId) {
+        if (!userId || !('EventSource' in window)) return;
+        if (userStream && userStreamUserId === userId) return;
+
+        stopUserStream();
+        userStreamUserId = userId;
+
+        let opened = false;
+        try {
+          userStream = new EventSource(`/api/user/${encodeURIComponent(userId)}/stream`);
+        } catch (error) {
+          console.error('User stream failed to start', error);
+          userStream = null;
+          userStreamUserId = '';
+          return;
+        }
+
+        userStreamOpenTimeout = setTimeout(() => {
+          if (opened) return;
+          stopUserStream();
+        }, 5000);
+
+        userStream.addEventListener('open', () => {
+          opened = true;
+          if (userStreamOpenTimeout) clearTimeout(userStreamOpenTimeout);
+          userStreamOpenTimeout = null;
+        });
+
+        userStream.addEventListener('user', (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (!data.user || data.user.id !== currentUser?.id) return;
+            applyUserState(data.user);
+          } catch (error) {
+            console.error('User stream parse failed', error);
+          }
+        });
+
+        userStream.addEventListener('error', () => {
+          // EventSource reconnects automatically after a successful connection.
+        });
+      }
+
       async function fetchDbInstanceId() {
         try {
           const res = await fetch('/api/ping');
@@ -1157,6 +1497,57 @@
         } catch (error) {
           console.error('Buy oxygen error', error);
           showToast('Kauf fehlgeschlagen.');
+        }
+      }
+
+      async function marryPartner() {
+        if (!currentUser) return;
+        const partnerCode = normalizeMarriageCode(partnerCodeInput ? partnerCodeInput.value : '');
+        if (!partnerCode) {
+          showToast('Partner-Code fehlt.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/marriage/marry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id, partnerCode }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(getMarriageErrorMessage(json.error));
+            return;
+          }
+          applyUserState(json.user);
+          showToast('Ihr seid jetzt verheiratet.');
+        } catch (error) {
+          console.error('Marriage failed', error);
+          showToast('Heirat fehlgeschlagen.');
+        }
+      }
+
+      async function divorcePartner() {
+        if (!currentUser || !currentUser.spouse_id) return;
+        const confirmed = confirm('Wirklich scheiden lassen? Das gemeinsame Geld wird geteilt.');
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch('/api/marriage/divorce', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(getMarriageErrorMessage(json.error));
+            return;
+          }
+          applyUserState(json.user);
+          showToast('Scheidung abgeschlossen.');
+        } catch (error) {
+          console.error('Divorce failed', error);
+          showToast('Scheidung fehlgeschlagen.');
         }
       }
 
@@ -1316,6 +1707,16 @@
       }
 
       buyOxygenButton.addEventListener('click', buyOxygen);
+      relationshipButton.addEventListener('click', openRelationshipModal);
+      closeRelationshipButton.addEventListener('click', closeRelationshipModal);
+      marryButton.addEventListener('click', marryPartner);
+      divorceButton.addEventListener('click', divorcePartner);
+      partnerCodeInput.addEventListener('input', () => {
+        partnerCodeInput.value = normalizeMarriageCode(partnerCodeInput.value);
+      });
+      relationshipModal.addEventListener('click', (event) => {
+        if (event.target === relationshipModal) closeRelationshipModal();
+      });
       scanQrButton.addEventListener('click', scanQr);
       healScanButton.addEventListener('click', scanQr);
       stopScannerButton.addEventListener('click', stopQrScanner);
@@ -1335,7 +1736,7 @@
       document.body.style.visibility = 'visible';
       setInterval(async () => {
         await loadUser();
-      }, 60000);
+      }, 5000);
     </script>
   </body>
 </html>

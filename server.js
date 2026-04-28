@@ -8,9 +8,11 @@ const os = require('os');
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/pictures', express.static(path.join(__dirname, 'pictures')));
 
 // --- Announcement realtime (Server-Sent Events) ---
 const announcementClients = new Set();
+const userClients = new Map();
 
 function getPauseState() {
   const sinceRaw = db.getConfig('announcement_pause_since') || '';
@@ -55,6 +57,49 @@ function broadcastAnnouncement(payload) {
       if (client.keepAlive) clearInterval(client.keepAlive);
     }
   }
+}
+
+function addUserClient(userId, client) {
+  if (!userClients.has(userId)) userClients.set(userId, new Set());
+  userClients.get(userId).add(client);
+}
+
+function removeUserClient(userId, client) {
+  const clients = userClients.get(userId);
+  if (!clients) return;
+  clients.delete(client);
+  if (clients.size === 0) userClients.delete(userId);
+}
+
+function broadcastUser(userId, pauseState = getPauseState()) {
+  const clients = userClients.get(userId);
+  if (!clients || clients.size === 0) return;
+
+  const user = db.getUser(userId);
+  if (!user) return;
+  const formatted = formatSseEvent('user', { user: enrichUser(user, pauseState) });
+
+  for (const client of clients) {
+    try {
+      client.res.write(formatted);
+    } catch {
+      removeUserClient(userId, client);
+      try { client.res.end(); } catch {}
+      if (client.keepAlive) clearInterval(client.keepAlive);
+    }
+  }
+}
+
+function broadcastUsers(userIds, pauseState = getPauseState()) {
+  const uniqueIds = [...new Set((userIds || []).filter(Boolean))];
+  for (const userId of uniqueIds) {
+    broadcastUser(userId, pauseState);
+  }
+}
+
+function getAffectedUserIds(user) {
+  if (!user) return [];
+  return user.spouse_id ? [user.id, user.spouse_id] : [user.id];
 }
 
 function enrichUser(user, pauseState) {
@@ -104,6 +149,38 @@ app.get('/api/user/:id', (req, res) => {
   res.json({ user: enrichUser(user, pauseState) });
 });
 
+app.get('/api/user/:id/stream', (req, res) => {
+  const userId = req.params.id;
+  const user = db.getUser(userId);
+  if (!user) return res.status(404).end();
+
+  res.status(200);
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  const client = { res, keepAlive: null };
+  addUserClient(userId, client);
+
+  res.write(formatSseEvent('user', { user: enrichUser(user, getPauseState()) }));
+
+  client.keepAlive = setInterval(() => {
+    try {
+      res.write(': keep-alive\n\n');
+    } catch {
+      removeUserClient(userId, client);
+      if (client.keepAlive) clearInterval(client.keepAlive);
+    }
+  }, 20000);
+
+  req.on('close', () => {
+    removeUserClient(userId, client);
+    if (client.keepAlive) clearInterval(client.keepAlive);
+  });
+});
+
 app.post('/api/buy-oxygen', (req, res) => {
   const pauseState = getPauseState();
   const effectiveNow = getEffectiveNow(pauseState);
@@ -116,7 +193,36 @@ app.post('/api/buy-oxygen', (req, res) => {
   }
   const updated = db.buyOxygen(userId, config.oxygenPurchaseMinutes, config.oxygenPurchaseCost, effectiveNow);
   if (!updated) return res.status(400).json({ error: 'not enough money' });
+  broadcastUsers(getAffectedUserIds(updated), pauseState);
   res.json({ user: enrichUser(updated, pauseState) });
+});
+
+app.post('/api/marriage/marry', (req, res) => {
+  const pauseState = getPauseState();
+  const { user: userId, partnerCode } = req.body || {};
+  if (!userId || !partnerCode) return res.status(400).json({ error: 'missing params' });
+
+  const result = db.marryUsers(userId, partnerCode);
+  if (!result || result.error) {
+    const status = result && result.error === 'partner not found' ? 404 : 400;
+    return res.status(status).json({ error: result ? result.error : 'operation failed' });
+  }
+  broadcastUsers(result.affectedIds, pauseState);
+  res.json({ user: enrichUser(result.user, pauseState) });
+});
+
+app.post('/api/marriage/divorce', (req, res) => {
+  const pauseState = getPauseState();
+  const { user: userId } = req.body || {};
+  if (!userId) return res.status(400).json({ error: 'missing user id' });
+
+  const result = db.divorceUser(userId);
+  if (!result || result.error) {
+    const status = result && result.error === 'user not found' ? 404 : 400;
+    return res.status(status).json({ error: result ? result.error : 'operation failed' });
+  }
+  broadcastUsers(result.affectedIds, pauseState);
+  res.json({ user: enrichUser(result.user, pauseState) });
 });
 
 function parseQrPayload(value) {
@@ -156,6 +262,7 @@ app.post('/api/qr-scan', (req, res) => {
     message = `${payload.minutes} Minuten Sauerstoff hinzugefügt.`;
   }
   if (!updated) return res.status(400).json({ error: 'operation failed' });
+  broadcastUsers(getAffectedUserIds(updated), pauseState);
   res.json({ user: enrichUser(updated, pauseState), message });
 });
 
@@ -168,6 +275,7 @@ app.post('/api/admin/login', (req, res) => {
   if (!db.adminPasswordMatches(password)) return res.status(401).json({ error: 'invalid password' });
   const updated = db.setAdmin(userId);
   if (!updated) return res.status(500).json({ error: 'could not set admin' });
+  broadcastUser(userId, pauseState);
   res.json({ user: enrichUser(updated, pauseState) });
 });
 
@@ -278,6 +386,7 @@ app.get('/scan', (req, res) => {
     updated = db.addOxygen(userId, payload.minutes, effectiveNow);
   }
   if (!updated) return res.status(400).send('operation failed');
+  broadcastUsers(getAffectedUserIds(updated), pauseState);
   const origin = `${req.protocol}://${req.get('host')}`;
   res.redirect(`${origin}/?user=${encodeURIComponent(userId)}&status=ok`);
 });
