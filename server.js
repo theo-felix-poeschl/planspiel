@@ -42,6 +42,14 @@ function getEffectiveNow(pauseState) {
   return pauseState && pauseState.paused ? pauseState.since : new Date();
 }
 
+function getLocalDayRange(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
 function formatSseEvent(event, data) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
@@ -122,12 +130,48 @@ app.get('/api/ping', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
+  const dynamicOxygenPurchaseCost = Number.parseInt(db.getConfig('oxygen_purchase_cost') || '', 10);
   res.json({
     oxygenPurchaseMinutes: config.oxygenPurchaseMinutes,
-    oxygenPurchaseCost: config.oxygenPurchaseCost,
+    oxygenPurchaseCost: Number.isFinite(dynamicOxygenPurchaseCost) ? dynamicOxygenPurchaseCost : config.oxygenPurchaseCost,
     healCodeMinutes: config.healCodeMinutes,
     startingMoney: config.startingMoney,
     startingOxygenMinutes: config.startingOxygenMinutes,
+  });
+});
+
+app.post('/api/config/oxygen-cost', (req, res) => {
+  const { user: userId, cost } = req.body || {};
+  if (!userId) return res.status(400).json({ error: 'missing user id' });
+  const user = db.getUser(userId);
+  if (!user) return res.status(404).json({ error: 'user not found' });
+  if (!user.is_admin) return res.status(403).json({ error: 'admin only' });
+
+  const parsedCost = Number(cost);
+  if (!Number.isInteger(parsedCost) || parsedCost < 0 || parsedCost > 100000) {
+    return res.status(400).json({ error: 'invalid cost' });
+  }
+
+  db.setConfig('oxygen_purchase_cost', String(parsedCost));
+  res.json({ oxygenPurchaseCost: parsedCost });
+});
+
+app.get('/api/admin/money-overview', (req, res) => {
+  const userId = req.query.user;
+  if (!userId) return res.status(400).json({ error: 'missing user id' });
+  const user = db.getUser(userId);
+  if (!user) return res.status(404).json({ error: 'user not found' });
+  if (!user.is_admin) return res.status(403).json({ error: 'admin only' });
+
+  const scope = req.query.scope === 'all' ? 'all' : 'today';
+  const range = scope === 'today' ? getLocalDayRange() : { start: null, end: null };
+  const overview = db.getMoneyOverview({ since: range.start, until: range.end });
+  res.json({
+    ...overview,
+    scope,
+    since: range.start ? range.start.toISOString() : '',
+    until: range.end ? range.end.toISOString() : '',
+    generated_at: new Date().toISOString(),
   });
 });
 
@@ -184,6 +228,8 @@ app.get('/api/user/:id/stream', (req, res) => {
 app.post('/api/buy-oxygen', (req, res) => {
   const pauseState = getPauseState();
   const effectiveNow = getEffectiveNow(pauseState);
+  const dynamicOxygenPurchaseCost = Number.parseInt(db.getConfig('oxygen_purchase_cost') || '', 10);
+  const oxygenPurchaseCost = Number.isFinite(dynamicOxygenPurchaseCost) ? dynamicOxygenPurchaseCost : config.oxygenPurchaseCost;
   const { user: userId } = req.body || {};
   if (!userId) return res.status(400).json({ error: 'missing user id' });
   const existing = db.getUser(userId);
@@ -191,7 +237,7 @@ app.post('/api/buy-oxygen', (req, res) => {
   if (existing.oxygen_end && new Date(existing.oxygen_end).getTime() <= effectiveNow.getTime()) {
     return res.status(400).json({ error: 'timer expired' });
   }
-  const updated = db.buyOxygen(userId, config.oxygenPurchaseMinutes, config.oxygenPurchaseCost, effectiveNow);
+  const updated = db.buyOxygen(userId, config.oxygenPurchaseMinutes, oxygenPurchaseCost, effectiveNow);
   if (!updated) return res.status(400).json({ error: 'not enough money' });
   broadcastUsers(getAffectedUserIds(updated), pauseState);
   res.json({ user: enrichUser(updated, pauseState) });
@@ -255,8 +301,11 @@ app.post('/api/qr-scan', (req, res) => {
   let updated;
   let message;
   if (payload.type === 'money') {
+    const creditedAmount = db.getMoneyCreditAmount(user, payload.amount);
     updated = db.addMoney(userId, payload.amount);
-    message = `€${payload.amount} hinzugefügt.`;
+    message = creditedAmount !== payload.amount
+      ? `€${creditedAmount} hinzugefügt. Ehebonus: +15%.`
+      : `€${payload.amount} hinzugefügt.`;
   } else if (payload.type === 'heal') {
     updated = db.addOxygen(userId, payload.minutes, effectiveNow);
     message = `${payload.minutes} Minuten Sauerstoff hinzugefügt.`;

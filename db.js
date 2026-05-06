@@ -138,13 +138,70 @@ function setMoneyForParticipants(ids, amount) {
   }
 }
 
+function getMoneyCreditAmount(user, amount) {
+  const roundedAmount = Math.round(amount);
+  if (roundedAmount <= 0) return roundedAmount;
+  const ids = getMoneyParticipantIds(user);
+  return ids.length > 1 ? Math.round(roundedAmount * 1.15) : roundedAmount;
+}
+
+function getMoneyOverview({ since = null, until = null } = {}) {
+  const clauses = ['is_admin = 0'];
+  const params = [];
+  if (since instanceof Date) {
+    clauses.push('created_at >= ?');
+    params.push(since.toISOString());
+  }
+  if (until instanceof Date) {
+    clauses.push('created_at < ?');
+    params.push(until.toISOString());
+  }
+
+  const users = db.prepare(
+    `SELECT id FROM users
+     WHERE ${clauses.join(' AND ')}
+     ORDER BY created_at DESC`
+  ).all(...params).map(row => getUser(row.id)).filter(Boolean);
+
+  const scopedUserIds = new Set(users.map(user => user.id));
+  const seenAccounts = new Set();
+  const accounts = [];
+  for (const user of users) {
+    const participantIds = getMoneyParticipantIds(user);
+    const accountKey = [...participantIds].sort().join('|');
+    if (seenAccounts.has(accountKey)) continue;
+    seenAccounts.add(accountKey);
+
+    const participants = participantIds.map(id => getUser(id)).filter(Boolean);
+    accounts.push({
+      id: accountKey,
+      geld: Math.round(user.geld),
+      married: participantIds.length > 1,
+      participants: participants.map(participant => ({
+        id: participant.id,
+        marriage_code: participant.marriage_code,
+        created_at: participant.created_at,
+        in_scope: scopedUserIds.has(participant.id),
+      })),
+    });
+  }
+
+  const total = accounts.reduce((sum, account) => sum + account.geld, 0);
+  return {
+    total,
+    userCount: users.length,
+    accountCount: accounts.length,
+    accounts,
+  };
+}
+
 function addMoney(id, amount) {
   if (!Number.isFinite(amount)) throw new Error('invalid amount');
   const tx = db.transaction(() => {
     const user = getUser(id);
     if (!user) return null;
     const ids = getMoneyParticipantIds(user);
-    setMoneyForParticipants(ids, user.geld + Math.round(amount));
+    setMoneyForParticipants(ids, user.geld + getMoneyCreditAmount(user, amount));
     return getUser(id);
   });
   return tx();
@@ -265,6 +322,8 @@ module.exports = {
   createUser,
   getUser,
   getUserByMarriageCode,
+  getMoneyCreditAmount,
+  getMoneyOverview,
   addMoney,
   addOxygen,
   canBuyOxygen,

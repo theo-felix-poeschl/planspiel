@@ -6,10 +6,22 @@
     <title>Planspiel</title>
     <style>
       :root {
+        --color-blue: #40b9e3;
+        --color-pink: #c6168d;
+        --color-purple: #672686;
+        --color-yellow: #faba02;
+        --ink: #20142f;
+        --muted: #665b72;
+        --surface: rgba(255, 255, 255, 0.96);
+        --surface-soft: rgba(250, 247, 252, 0.94);
+        --border-blue: rgba(64, 185, 227, 0.28);
+        --border-purple: rgba(103, 38, 134, 0.18);
+        --shadow-blue: rgba(64, 185, 227, 0.3);
+        --shadow-purple: rgba(32, 20, 47, 0.14);
         color-scheme: light;
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        color: #102a43;
-        background: #eef6ff;
+        color: var(--ink);
+        background: #f5f1fb;
       }
 
       * { box-sizing: border-box; }
@@ -22,8 +34,10 @@
         margin: 0;
         min-height: 100vh;
         padding: 1rem;
-        background: radial-gradient(circle at top, rgba(37, 99, 235, 0.14), transparent 28%),
-                    linear-gradient(180deg, #eef6ff 0%, #f8fbff 100%);
+        background:
+          radial-gradient(circle at top left, rgba(64, 185, 227, 0.24), transparent 31%),
+          radial-gradient(circle at top right, rgba(198, 22, 141, 0.12), transparent 30%),
+          linear-gradient(180deg, #f5f1fb 0%, #f9fcff 58%, #fff8df 100%);
         visibility: hidden;
       }
 
@@ -71,13 +85,13 @@
         height: 56px;
         border-radius: 50%;
         border: none;
-        background: rgba(255,255,255,0.95);
-        color: #2563eb;
+        background: var(--surface);
+        color: var(--color-purple);
         font-size: 1.75rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+        box-shadow: 0 14px 40px var(--shadow-purple);
         cursor: pointer;
       }
 
@@ -85,12 +99,12 @@
         position: relative;
         z-index: 30;
         overflow: hidden;
-        color: #111111;
+        color: var(--ink);
         /* background:
           radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 42%),
-          linear-gradient(135deg, #2563eb, #1d4ed8); */
+          linear-gradient(135deg, var(--color-blue), var(--color-purple)); */
         border: 1px solid rgba(255, 255, 255, 0.22);
-        box-shadow: 0 18px 55px rgba(37, 99, 235, 0.34);
+        box-shadow: 0 18px 55px var(--shadow-blue);
       }
 
       .scan-icon {
@@ -106,7 +120,7 @@
         mask-position: center;
         -webkit-mask-size: contain;
         mask-size: contain;
-        filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.22));
+        filter: drop-shadow(0 10px 18px rgba(103, 38, 134, 0.22));
       }
 
       .camera-button::after {
@@ -130,7 +144,7 @@
       .camera-button:focus-visible,
       .back-button:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18), 0 18px 55px rgba(37, 99, 235, 0.34);
+        box-shadow: 0 0 0 4px rgba(64, 185, 227, 0.2), 0 18px 55px var(--shadow-blue);
       }
 
       .camera-button:hover,
@@ -142,14 +156,14 @@
         min-width: 140px;
         max-width: 180px;
         border-radius: 999px;
-        border: 1px solid rgba(37, 99, 235, 0.16);
+        border: 1px solid var(--border-blue);
         padding: 0.85rem 1rem;
-        background: rgba(255,255,255,0.95);
-        color: #0f172a;
+        background: var(--surface);
+        color: var(--ink);
         font-size: 1rem;
         font-weight: 700;
         text-align: center;
-        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+        box-shadow: inset 0 1px 2px rgba(32, 20, 47, 0.06);
         cursor: pointer;
       }
 
@@ -157,23 +171,23 @@
         min-width: 56px;
         height: 56px;
         border-radius: 50%;
-        border: 1px solid rgba(37, 99, 235, 0.16);
-        background: rgba(255,255,255,0.95);
-        color: #0f172a;
+        border: 1px solid var(--border-purple);
+        background: var(--surface);
+        color: var(--ink);
         font-size: 1.55rem;
         font-weight: 900;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+        box-shadow: 0 14px 40px var(--shadow-purple);
         cursor: pointer;
         transition: transform 140ms ease, box-shadow 140ms ease, color 140ms ease;
       }
 
       .relationship-button.married {
-        color: #db2777;
-        border-color: rgba(219, 39, 119, 0.22);
-        box-shadow: 0 16px 44px rgba(219, 39, 119, 0.15);
+        color: var(--color-pink);
+        border-color: rgba(198, 22, 141, 0.24);
+        box-shadow: 0 16px 44px rgba(198, 22, 141, 0.16);
       }
 
       .relationship-button:hover {
@@ -182,7 +196,7 @@
 
       .relationship-button:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.14), 0 16px 44px rgba(219, 39, 119, 0.15);
+        box-shadow: 0 0 0 4px rgba(198, 22, 141, 0.15), 0 16px 44px rgba(198, 22, 141, 0.16);
       }
 
       .timer-container {
@@ -198,7 +212,7 @@
       .timer-container strong {
         font-size: clamp(4rem, 14vw, 8rem);
         line-height: 0.9;
-        color: #0f172a;
+        color: var(--ink);
       }
 
       .timer-meta {
@@ -207,7 +221,7 @@
       }
 
       .timer-meta span {
-        color: #475569;
+        color: var(--muted);
       }
 
       .bottom-actions {
@@ -217,7 +231,7 @@
 
       .announcement {
         margin-top: 0.5rem;
-        color: #1e3a8a;
+        color: var(--color-purple);
         font-size: 0.95rem;
         padding: 0;
       }
@@ -230,10 +244,10 @@
         padding: 0.95rem 1.15rem;
         font-weight: 800;
         font-size: 1rem;
-        letter-spacing: -0.01em;
+        letter-spacing: 0;
         color: #ffffff;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        box-shadow: 0 16px 44px rgba(37, 99, 235, 0.25);
+        background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
+        box-shadow: 0 16px 44px rgba(198, 22, 141, 0.24), 0 0 0 1px rgba(64, 185, 227, 0.18);
         cursor: pointer;
         transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease, opacity 140ms ease;
       }
@@ -243,26 +257,27 @@
       .button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
       .button.secondary {
-        color: #0f172a;
-        background: rgba(255,255,255,0.95);
-        border: 1px solid rgba(37, 99, 235, 0.18);
-        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--border-blue);
+        box-shadow: 0 14px 40px var(--shadow-purple);
       }
 
       .button.danger {
         color: #ffffff;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        box-shadow: 0 16px 44px rgba(220, 38, 38, 0.22);
+        background: linear-gradient(135deg, var(--color-pink), var(--color-purple));
+        box-shadow: 0 16px 44px rgba(198, 22, 141, 0.24);
       }
 
       @keyframes readyPulse {
-        0%, 100% { box-shadow: 0 18px 55px rgba(34, 197, 94, 0.28); }
-        50% { box-shadow: 0 22px 75px rgba(34, 197, 94, 0.38); }
+        0%, 100% { box-shadow: 0 18px 55px rgba(250, 186, 2, 0.3); }
+        50% { box-shadow: 0 22px 75px rgba(250, 186, 2, 0.42); }
       }
 
       .button.ready {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        box-shadow: 0 18px 55px rgba(34, 197, 94, 0.28);
+        color: var(--ink);
+        background: linear-gradient(135deg, var(--color-yellow), #ffd866);
+        box-shadow: 0 18px 55px rgba(250, 186, 2, 0.3);
         animation: readyPulse 1.6s ease-in-out infinite;
       }
 
@@ -282,7 +297,7 @@
         max-width: min(92vw, 520px);
         padding: 0.85rem 1.05rem;
         border-radius: 999px;
-        background: rgba(15, 23, 42, 0.92);
+        background: rgba(32, 20, 47, 0.94);
         color: #f8fafc;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
         transition: opacity 160ms ease, transform 160ms ease;
@@ -298,8 +313,8 @@
         margin-top: 0.5rem;
         padding: 0.95rem 1rem;
         border-radius: 24px;
-        background: #fee2e2;
-        color: #b91c1c;
+        background: rgba(198, 22, 141, 0.12);
+        color: #7f115f;
         border: none;
         max-width: 420px;
       }
@@ -311,7 +326,7 @@
         align-items: center;
         justify-content: center;
         padding: 1rem;
-        background: rgba(15, 23, 42, 0.88);
+        background: rgba(32, 20, 47, 0.9);
         z-index: 20;
         pointer-events: auto;
       }
@@ -324,7 +339,7 @@
         width: min(100%, 420px);
         border-radius: 32px;
         padding: 2rem 1.5rem;
-        background: rgba(20, 20, 20, 0.95);
+        background: rgba(32, 20, 47, 0.96);
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
         border: 1px solid rgba(255, 255, 255, 0.08);
         text-align: center;
@@ -334,13 +349,13 @@
       .dead-icon {
         font-size: 4rem;
         margin-bottom: 1rem;
-        color: #ef4444;
+        color: var(--color-yellow);
       }
 
       .dead-card h1 {
         margin: 0;
         font-size: clamp(2.5rem, 8vw, 4rem);
-        letter-spacing: -0.05em;
+        letter-spacing: 0;
       }
 
       .dead-card p {
@@ -353,7 +368,7 @@
         margin: 1.75rem auto 1rem;
         width: 72px;
         height: 4px;
-        background: linear-gradient(90deg, #f87171, #ef4444);
+        background: linear-gradient(90deg, var(--color-yellow), var(--color-pink));
         border-radius: 999px;
       }
 
@@ -369,7 +384,7 @@
         padding: 1rem 1.25rem;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(248, 113, 113, 0.28);
+        border: 1px solid rgba(250, 186, 2, 0.32);
         color: #fff;
         font-weight: 700;
         font-size: 0.96rem;
@@ -383,7 +398,7 @@
       .scanner-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(2, 20, 43, 0.82);
+        background: rgba(32, 20, 47, 0.84);
         display: grid;
         place-items: center;
         padding: 1rem;
@@ -394,10 +409,10 @@
         width: min(100%, 520px);
         display: grid;
         gap: 1rem;
-        background: #111827;
+        background: #20142f;
         border-radius: 24px;
         overflow: hidden;
-        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+        box-shadow: 0 32px 80px rgba(32, 20, 47, 0.38);
       }
 
       .scanner video {
@@ -422,14 +437,14 @@
       }
 
       .back-button {
-        background: rgba(255,255,255,0.95);
-        color: #102a43;
+        background: var(--surface);
+        color: var(--ink);
       }
 
       .screen-title {
         font-size: 1.1rem;
         font-weight: 800;
-        color: #0f172a;
+        color: var(--ink);
       }
 
       .admin-shell {
@@ -443,9 +458,9 @@
         width: min(100%, 620px);
         border-radius: 28px;
         padding: 1.25rem 1.15rem;
-        background: rgba(255,255,255,0.95);
-        border: 1px solid rgba(37, 99, 235, 0.16);
-        box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+        background: var(--surface);
+        border: 1px solid var(--border-blue);
+        box-shadow: 0 18px 60px var(--shadow-purple);
         display: grid;
         gap: 1rem;
       }
@@ -460,13 +475,13 @@
       .admin-title {
         font-size: 1.2rem;
         font-weight: 900;
-        letter-spacing: -0.02em;
-        color: #0f172a;
+        letter-spacing: 0;
+        color: var(--ink);
       }
 
       .admin-meta {
         margin-top: 0.25rem;
-        color: #64748b;
+        color: var(--muted);
         font-size: 0.95rem;
       }
 
@@ -478,17 +493,17 @@
         border-radius: 999px;
         font-weight: 900;
         font-size: 0.85rem;
-        letter-spacing: 0.02em;
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        background: rgba(15, 23, 42, 0.04);
-        color: #0f172a;
+        letter-spacing: 0;
+        border: 1px solid var(--border-purple);
+        background: rgba(103, 38, 134, 0.06);
+        color: var(--ink);
         white-space: nowrap;
       }
 
       .pill.live {
-        background: rgba(220, 38, 38, 0.1);
-        border-color: rgba(220, 38, 38, 0.25);
-        color: #b91c1c;
+        background: rgba(198, 22, 141, 0.1);
+        border-color: rgba(198, 22, 141, 0.25);
+        color: #8b1168;
       }
 
       .field-group {
@@ -505,8 +520,8 @@
 
       label {
         font-weight: 900;
-        color: #0f172a;
-        letter-spacing: -0.01em;
+        color: var(--ink);
+        letter-spacing: 0;
       }
 
       .admin-content {
@@ -520,28 +535,47 @@
         width: 100%;
         padding: 0.9rem 1rem;
         border-radius: 18px;
-        border: 1px solid rgba(37, 99, 235, 0.18);
-        background: rgba(248, 250, 252, 0.9);
-        color: #0f172a;
+        border: 1px solid var(--border-blue);
+        background: var(--surface-soft);
+        color: var(--ink);
         outline: none;
         font-size: 1rem;
         line-height: 1.5;
-        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+        box-shadow: inset 0 1px 2px rgba(32, 20, 47, 0.06);
+      }
+
+      .number-input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border-radius: 18px;
+        border: 1px solid var(--border-blue);
+        background: var(--surface-soft);
+        color: var(--ink);
+        outline: none;
+        font-size: 1rem;
+        font-weight: 800;
+        box-shadow: inset 0 1px 2px rgba(32, 20, 47, 0.06);
       }
 
       textarea:focus {
-        border-color: rgba(37, 99, 235, 0.55);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), inset 0 1px 2px rgba(15, 23, 42, 0.06);
+        border-color: rgba(64, 185, 227, 0.62);
+        box-shadow: 0 0 0 4px rgba(64, 185, 227, 0.16), inset 0 1px 2px rgba(32, 20, 47, 0.06);
+        background: #ffffff;
+      }
+
+      .number-input:focus {
+        border-color: rgba(64, 185, 227, 0.62);
+        box-shadow: 0 0 0 4px rgba(64, 185, 227, 0.16), inset 0 1px 2px rgba(32, 20, 47, 0.06);
         background: #ffffff;
       }
 
       .helper-text {
-        color: #475569;
+        color: var(--muted);
         font-size: 0.95rem;
       }
 
       .counter {
-        color: #64748b;
+        color: var(--muted);
         font-weight: 800;
         font-size: 0.9rem;
       }
@@ -559,29 +593,93 @@
       }
 
       .preview-label {
-        color: #64748b;
+        color: var(--muted);
         font-weight: 900;
         font-size: 0.85rem;
-        letter-spacing: 0.06em;
+        letter-spacing: 0;
         text-transform: uppercase;
       }
 
       .preview-box {
         border-radius: 18px;
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        background: rgba(15, 23, 42, 0.03);
+        border: 1px solid var(--border-purple);
+        background: rgba(103, 38, 134, 0.04);
         padding: 0.85rem 1rem;
-        color: #0f172a;
+        color: var(--ink);
         line-height: 1.5;
         white-space: pre-wrap;
         word-break: break-word;
         min-height: 56px;
       }
 
+      .money-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .money-stat {
+        border-radius: 18px;
+        border: 1px solid var(--border-blue);
+        background: rgba(64, 185, 227, 0.07);
+        padding: 0.85rem 1rem;
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .money-stat span {
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .money-stat strong {
+        color: var(--ink);
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      .money-list {
+        display: grid;
+        gap: 0.55rem;
+        max-height: 260px;
+        overflow: auto;
+        padding-right: 0.15rem;
+      }
+
+      .money-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+        border-radius: 16px;
+        border: 1px solid var(--border-purple);
+        background: rgba(103, 38, 134, 0.04);
+        padding: 0.75rem 0.85rem;
+      }
+
+      .money-row-title {
+        color: var(--ink);
+        font-weight: 900;
+      }
+
+      .money-row-meta {
+        margin-top: 0.2rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.35;
+      }
+
+      .money-row-value {
+        color: var(--color-purple);
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
       .announcement-modal {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 1);
+        background: rgba(32, 20, 47, 1);
         display: grid;
         place-items: center;
         padding: 1rem;
@@ -596,30 +694,30 @@
         width: min(100%, 480px);
         border-radius: 32px;
         padding: 2rem 1.5rem;
-        background: linear-gradient(135deg, #eff6ff, #ffffff);
-        border: 1px solid rgba(37, 99, 235, 0.28);
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+        background: linear-gradient(135deg, #effaff, #fff8df 58%, #ffffff);
+        border: 1px solid rgba(64, 185, 227, 0.34);
+        box-shadow: 0 24px 60px rgba(32, 20, 47, 0.28);
         text-align: center;
-        color: #0f172a;
+        color: var(--ink);
       }
 
       .announcement-card h2 {
         margin: 0 0 1rem;
         font-size: 1.5rem;
         font-weight: 800;
-        color: #1e40af;
+        color: var(--color-purple);
       }
 
       .announcement-card p {
         margin: 1rem 0;
         line-height: 1.6;
-        color: #1e293b;
+        color: var(--ink);
       }
 
       .relationship-modal {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.72);
+        background: rgba(32, 20, 47, 0.76);
         display: grid;
         place-items: center;
         padding: 1rem;
@@ -631,9 +729,9 @@
         border-radius: 24px;
         padding: 1.25rem;
         background: rgba(255,255,255,0.98);
-        border: 1px solid rgba(219, 39, 119, 0.14);
-        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
-        color: #0f172a;
+        border: 1px solid rgba(198, 22, 141, 0.18);
+        box-shadow: 0 24px 70px rgba(32, 20, 47, 0.3);
+        color: var(--ink);
         display: grid;
         gap: 1rem;
       }
@@ -651,7 +749,7 @@
       }
 
       .relationship-status {
-        color: #64748b;
+        color: var(--muted);
         font-weight: 700;
         line-height: 1.45;
       }
@@ -660,9 +758,9 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        background: rgba(15, 23, 42, 0.04);
-        color: #0f172a;
+        border: 1px solid var(--border-purple);
+        background: rgba(103, 38, 134, 0.06);
+        color: var(--ink);
         font-size: 1.35rem;
         line-height: 1;
         cursor: pointer;
@@ -675,34 +773,34 @@
 
       .code-value {
         border-radius: 16px;
-        border: 1px solid rgba(37, 99, 235, 0.16);
-        background: rgba(248, 250, 252, 0.95);
+        border: 1px solid var(--border-blue);
+        background: var(--surface-soft);
         padding: 0.85rem 1rem;
         text-align: center;
         font-size: 1.45rem;
         font-weight: 950;
-        letter-spacing: 0.12em;
-        color: #0f172a;
+        letter-spacing: 0;
+        color: var(--ink);
       }
 
       .relationship-input {
         width: 100%;
         border-radius: 16px;
-        border: 1px solid rgba(37, 99, 235, 0.18);
-        background: rgba(248, 250, 252, 0.95);
-        color: #0f172a;
+        border: 1px solid var(--border-blue);
+        background: var(--surface-soft);
+        color: var(--ink);
         padding: 0.9rem 1rem;
         font-size: 1rem;
         font-weight: 800;
         text-align: center;
-        letter-spacing: 0.08em;
+        letter-spacing: 0;
         text-transform: uppercase;
       }
 
       .relationship-input:focus {
         outline: none;
-        border-color: rgba(219, 39, 119, 0.55);
-        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.12);
+        border-color: rgba(198, 22, 141, 0.58);
+        box-shadow: 0 0 0 4px rgba(198, 22, 141, 0.14);
         background: #ffffff;
       }
 
@@ -727,6 +825,7 @@
         .money-field { min-width: 120px; }
         .scanner-content { width: 100%; }
         .admin-panel { padding: 1.05rem 1rem; }
+        .money-summary { grid-template-columns: 1fr; }
       }
 
     </style>
@@ -817,6 +916,41 @@
                 <div class="preview-label">Aktuell live</div>
                 <div id="announcementPreview" class="preview-box">—</div>
               </div>
+
+              <div class="field-group">
+                <div class="field-row">
+                  <label for="oxygenCostInput">Sauerstoffpreis</label>
+                  <span id="oxygenCostMeta" class="counter">—</span>
+                </div>
+                <input id="oxygenCostInput" class="number-input" type="number" min="0" max="100000" step="1" inputmode="numeric" />
+                <div class="helper-text">Gilt sofort für alle neuen Sauerstoffkäufe.</div>
+              </div>
+
+              <div class="admin-actions">
+                <button id="saveOxygenCostButton" class="button">Preis speichern</button>
+              </div>
+
+              <div class="field-group">
+                <div class="field-row">
+                  <label>Geldübersicht</label>
+                  <span id="moneyOverviewMeta" class="counter">Heute</span>
+                </div>
+                <div class="money-summary">
+                  <div class="money-stat">
+                    <span>Gesamtmenge</span>
+                    <strong id="moneyOverviewTotal">€0</strong>
+                  </div>
+                  <div class="money-stat">
+                    <span>Konten / User</span>
+                    <strong id="moneyOverviewCount">0 / 0</strong>
+                  </div>
+                </div>
+                <div id="moneyOverviewList" class="money-list"></div>
+              </div>
+
+              <div class="admin-actions">
+                <button id="refreshMoneyOverviewButton" class="button secondary">Aktualisieren</button>
+              </div>
             </div>
           </div>
         </div>
@@ -884,6 +1018,14 @@
       const adminStatusPill = document.getElementById('adminStatusPill');
       const announcementCount = document.getElementById('announcementCount');
       const announcementPreview = document.getElementById('announcementPreview');
+      const oxygenCostInput = document.getElementById('oxygenCostInput');
+      const oxygenCostMeta = document.getElementById('oxygenCostMeta');
+      const saveOxygenCostButton = document.getElementById('saveOxygenCostButton');
+      const moneyOverviewMeta = document.getElementById('moneyOverviewMeta');
+      const moneyOverviewTotal = document.getElementById('moneyOverviewTotal');
+      const moneyOverviewCount = document.getElementById('moneyOverviewCount');
+      const moneyOverviewList = document.getElementById('moneyOverviewList');
+      const refreshMoneyOverviewButton = document.getElementById('refreshMoneyOverviewButton');
       const moneyDisplay = document.getElementById('moneyDisplay');
       const expiredOverlay = document.getElementById('expiredOverlay');
       const healScanButton = document.getElementById('healScanButton');
@@ -918,6 +1060,7 @@
 	      let oxygenPurchaseCost = 30;
 	      let oxygenPurchaseMinutes = 10;
 	      let lastBuyButtonKey = '';
+        let moneyOverviewTimer = null;
 
 	      function isAdmin(user) {
 	        return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
@@ -985,7 +1128,11 @@
 
 	          if (Number.isFinite(json.oxygenPurchaseCost)) oxygenPurchaseCost = json.oxygenPurchaseCost;
 	          if (Number.isFinite(json.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = json.oxygenPurchaseMinutes;
+            if (oxygenCostInput && document.activeElement !== oxygenCostInput) {
+              oxygenCostInput.value = String(oxygenPurchaseCost);
+            }
 	          updateBuyButtonUI();
+            updateAdminUI();
 	          if (currentUser) updateTimerUI();
 	        } catch (error) {
 	          console.error('Config load failed', error);
@@ -1036,7 +1183,7 @@
 
         if (relationshipStatus) {
           relationshipStatus.textContent = married
-            ? `Verheiratet mit ${formatMarriageCode(currentUser.spouse_marriage_code)}. Geld wird gemeinsam genutzt.`
+            ? `Verheiratet mit ${formatMarriageCode(currentUser.spouse_marriage_code)}. Geld wird gemeinsam genutzt, Einnahmen erhalten +15%.`
             : 'Nicht verheiratet.';
         }
 
@@ -1139,14 +1286,19 @@
         if (announcementInput) {
           announcementInput.value = currentAnnouncement || '';
         }
+        if (oxygenCostInput) {
+          oxygenCostInput.value = String(oxygenPurchaseCost);
+        }
         adminScreen.classList.remove('hidden');
         mainScreen.classList.add('hidden');
         updateAdminUI();
+        startMoneyOverviewPolling();
       }
 
       function hideAdminScreen() {
         adminScreen.classList.add('hidden');
         mainScreen.classList.remove('hidden');
+        stopMoneyOverviewPolling();
       }
 
       function formatDeviceId(value) {
@@ -1154,6 +1306,94 @@
         const trimmed = value.trim();
         if (trimmed.length <= 14) return trimmed;
         return `${trimmed.slice(0, 8)}…${trimmed.slice(-4)}`;
+      }
+
+      function formatMoney(value) {
+        const amount = Number.isFinite(value) ? value : 0;
+        return `€${amount}`;
+      }
+
+      function formatAccountTitle(account) {
+        if (!account || !Array.isArray(account.participants) || account.participants.length === 0) {
+          return 'Unbekanntes Konto';
+        }
+        if (account.married) return 'Ehekonto';
+        return 'Einzelkonto';
+      }
+
+      function formatAccountMeta(account) {
+        if (!account || !Array.isArray(account.participants)) return '';
+        const visibleParticipants = account.participants.filter(participant => participant.in_scope !== false);
+        return visibleParticipants
+          .map(participant => `${formatDeviceId(participant.id)} · ${formatMarriageCode(participant.marriage_code)}`)
+          .join(' + ');
+      }
+
+      function renderMoneyOverview(data) {
+        if (!moneyOverviewTotal || !moneyOverviewCount || !moneyOverviewList) return;
+
+        const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+        moneyOverviewTotal.textContent = formatMoney(data.total);
+        moneyOverviewCount.textContent = `${data.accountCount || accounts.length} / ${data.userCount || 0}`;
+        if (moneyOverviewMeta) moneyOverviewMeta.textContent = 'Heute registriert';
+
+        moneyOverviewList.textContent = '';
+        if (accounts.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'preview-box';
+          empty.textContent = 'Heute wurden noch keine Spieler registriert.';
+          moneyOverviewList.appendChild(empty);
+          return;
+        }
+
+        for (const account of accounts) {
+          const row = document.createElement('div');
+          row.className = 'money-row';
+
+          const info = document.createElement('div');
+          const title = document.createElement('div');
+          title.className = 'money-row-title';
+          title.textContent = formatAccountTitle(account);
+          const meta = document.createElement('div');
+          meta.className = 'money-row-meta';
+          meta.textContent = formatAccountMeta(account);
+          info.append(title, meta);
+
+          const value = document.createElement('div');
+          value.className = 'money-row-value';
+          value.textContent = formatMoney(account.geld);
+
+          row.append(info, value);
+          moneyOverviewList.appendChild(row);
+        }
+      }
+
+      async function loadMoneyOverview() {
+        if (!currentUser || !isAdmin(currentUser)) return;
+        try {
+          const res = await fetch(`/api/admin/money-overview?user=${encodeURIComponent(currentUser.id)}&scope=today`);
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(json.error || 'Geldübersicht konnte nicht geladen werden.');
+            return;
+          }
+          renderMoneyOverview(json);
+        } catch (error) {
+          console.error('Money overview load failed', error);
+          showToast('Geldübersicht konnte nicht geladen werden.');
+        }
+      }
+
+      function startMoneyOverviewPolling() {
+        if (moneyOverviewTimer) return;
+        loadMoneyOverview();
+        moneyOverviewTimer = setInterval(loadMoneyOverview, 5000);
+      }
+
+      function stopMoneyOverviewPolling() {
+        if (!moneyOverviewTimer) return;
+        clearInterval(moneyOverviewTimer);
+        moneyOverviewTimer = null;
       }
 
       function updateAdminUI() {
@@ -1173,6 +1413,13 @@
 
         if (announcementPreview) {
           announcementPreview.textContent = isLive ? currentAnnouncement : '—';
+        }
+
+        if (oxygenCostMeta) {
+          const visibleCost = oxygenCostInput && oxygenCostInput.value !== ''
+            ? Number.parseInt(oxygenCostInput.value, 10)
+            : oxygenPurchaseCost;
+          oxygenCostMeta.textContent = Number.isFinite(visibleCost) ? `${visibleCost}€` : '—';
         }
 
         if (adminMeta) {
@@ -1676,6 +1923,37 @@
         }
       }
 
+      async function saveOxygenCost() {
+        if (!currentUser || !isAdmin(currentUser) || !oxygenCostInput) return;
+        const cost = Number.parseInt(oxygenCostInput.value, 10);
+        if (!Number.isFinite(cost) || cost < 0 || cost > 100000) {
+          showToast('Bitte einen gültigen Preis eingeben.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/config/oxygen-cost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: currentUser.id, cost }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            showToast(json.error || 'Preis konnte nicht gespeichert werden.');
+            return;
+          }
+
+          oxygenPurchaseCost = json.oxygenPurchaseCost;
+          oxygenCostInput.value = String(oxygenPurchaseCost);
+          updateBuyButtonUI();
+          updateAdminUI();
+          showToast('Sauerstoffpreis gespeichert.');
+        } catch (error) {
+          console.error('Oxygen cost save failed', error);
+          showToast('Preis konnte nicht gespeichert werden.');
+        }
+      }
+
       async function triggerAdminLogin() {
         adminTapCount += 1;
         clearTimeout(adminTapTimer);
@@ -1723,6 +2001,14 @@
       if (announcementInput) announcementInput.addEventListener('input', updateAdminUI);
       saveAnnouncementButton.addEventListener('click', saveAnnouncement);
       deleteAnnouncementButton.addEventListener('click', deleteAnnouncement);
+      if (saveOxygenCostButton) saveOxygenCostButton.addEventListener('click', saveOxygenCost);
+      if (refreshMoneyOverviewButton) refreshMoneyOverviewButton.addEventListener('click', loadMoneyOverview);
+      if (oxygenCostInput) {
+        oxygenCostInput.addEventListener('input', updateAdminUI);
+        oxygenCostInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') saveOxygenCost();
+        });
+      }
       moneyDisplay.addEventListener('click', triggerAdminLogin);
       adminBackButton.addEventListener('click', hideAdminScreen);
       announcementModal.addEventListener('click', () => {
@@ -1734,6 +2020,7 @@
       fetchAnnouncement();
       startAnnouncementStream();
       document.body.style.visibility = 'visible';
+      setInterval(loadClientConfig, 5000);
       setInterval(async () => {
         await loadUser();
       }, 5000);
