@@ -1060,7 +1060,6 @@
 	      let oxygenPurchaseCost = 30;
 	      let oxygenPurchaseMinutes = 10;
 	      let lastBuyButtonKey = '';
-        let moneyOverviewTimer = null;
 
 	      function isAdmin(user) {
 	        return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
@@ -1126,18 +1125,23 @@
 	          if (!res.ok) return;
 	          const json = await res.json();
 
-	          if (Number.isFinite(json.oxygenPurchaseCost)) oxygenPurchaseCost = json.oxygenPurchaseCost;
-	          if (Number.isFinite(json.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = json.oxygenPurchaseMinutes;
-            if (oxygenCostInput && document.activeElement !== oxygenCostInput) {
-              oxygenCostInput.value = String(oxygenPurchaseCost);
-            }
-	          updateBuyButtonUI();
-            updateAdminUI();
-	          if (currentUser) updateTimerUI();
+            applyClientConfig(json);
 	        } catch (error) {
 	          console.error('Config load failed', error);
 	        }
 	      }
+
+      function applyClientConfig(configUpdate) {
+        if (!configUpdate) return;
+        if (Number.isFinite(configUpdate.oxygenPurchaseCost)) oxygenPurchaseCost = configUpdate.oxygenPurchaseCost;
+        if (Number.isFinite(configUpdate.oxygenPurchaseMinutes)) oxygenPurchaseMinutes = configUpdate.oxygenPurchaseMinutes;
+        if (oxygenCostInput && document.activeElement !== oxygenCostInput) {
+          oxygenCostInput.value = String(oxygenPurchaseCost);
+        }
+        updateBuyButtonUI();
+        updateAdminUI();
+        if (currentUser) updateTimerUI();
+      }
 
       function showToast(message) {
         toastEl.textContent = message;
@@ -1292,13 +1296,12 @@
         adminScreen.classList.remove('hidden');
         mainScreen.classList.add('hidden');
         updateAdminUI();
-        startMoneyOverviewPolling();
+        loadMoneyOverview();
       }
 
       function hideAdminScreen() {
         adminScreen.classList.add('hidden');
         mainScreen.classList.remove('hidden');
-        stopMoneyOverviewPolling();
       }
 
       function formatDeviceId(value) {
@@ -1382,18 +1385,6 @@
           console.error('Money overview load failed', error);
           showToast('Geldübersicht konnte nicht geladen werden.');
         }
-      }
-
-      function startMoneyOverviewPolling() {
-        if (moneyOverviewTimer) return;
-        loadMoneyOverview();
-        moneyOverviewTimer = setInterval(loadMoneyOverview, 5000);
-      }
-
-      function stopMoneyOverviewPolling() {
-        if (!moneyOverviewTimer) return;
-        clearInterval(moneyOverviewTimer);
-        moneyOverviewTimer = null;
       }
 
       function updateAdminUI() {
@@ -1580,6 +1571,15 @@
             applyAnnouncementUpdate(data.announcement || '', data);
           } catch (error) {
             console.error('Announcement stream parse failed', error);
+          }
+        });
+
+        announcementStream.addEventListener('config', (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            applyClientConfig(data);
+          } catch (error) {
+            console.error('Config stream parse failed', error);
           }
         });
 
@@ -2020,10 +2020,9 @@
       fetchAnnouncement();
       startAnnouncementStream();
       document.body.style.visibility = 'visible';
-      setInterval(loadClientConfig, 5000);
       setInterval(async () => {
         await loadUser();
-      }, 5000);
+      }, 30000);
     </script>
   </body>
 </html>

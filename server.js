@@ -54,8 +54,32 @@ function formatSseEvent(event, data) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
+function getClientConfig() {
+  const dynamicOxygenPurchaseCost = Number.parseInt(db.getConfig('oxygen_purchase_cost') || '', 10);
+  return {
+    oxygenPurchaseMinutes: config.oxygenPurchaseMinutes,
+    oxygenPurchaseCost: Number.isFinite(dynamicOxygenPurchaseCost) ? dynamicOxygenPurchaseCost : config.oxygenPurchaseCost,
+    healCodeMinutes: config.healCodeMinutes,
+    startingMoney: config.startingMoney,
+    startingOxygenMinutes: config.startingOxygenMinutes,
+  };
+}
+
 function broadcastAnnouncement(payload) {
   const formatted = formatSseEvent('announcement', payload);
+  for (const client of announcementClients) {
+    try {
+      client.res.write(formatted);
+    } catch {
+      announcementClients.delete(client);
+      try { client.res.end(); } catch {}
+      if (client.keepAlive) clearInterval(client.keepAlive);
+    }
+  }
+}
+
+function broadcastConfig(payload = getClientConfig()) {
+  const formatted = formatSseEvent('config', payload);
   for (const client of announcementClients) {
     try {
       client.res.write(formatted);
@@ -130,14 +154,7 @@ app.get('/api/ping', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
-  const dynamicOxygenPurchaseCost = Number.parseInt(db.getConfig('oxygen_purchase_cost') || '', 10);
-  res.json({
-    oxygenPurchaseMinutes: config.oxygenPurchaseMinutes,
-    oxygenPurchaseCost: Number.isFinite(dynamicOxygenPurchaseCost) ? dynamicOxygenPurchaseCost : config.oxygenPurchaseCost,
-    healCodeMinutes: config.healCodeMinutes,
-    startingMoney: config.startingMoney,
-    startingOxygenMinutes: config.startingOxygenMinutes,
-  });
+  res.json(getClientConfig());
 });
 
 app.post('/api/config/oxygen-cost', (req, res) => {
@@ -153,6 +170,7 @@ app.post('/api/config/oxygen-cost', (req, res) => {
   }
 
   db.setConfig('oxygen_purchase_cost', String(parsedCost));
+  broadcastConfig(getClientConfig());
   res.json({ oxygenPurchaseCost: parsedCost });
 });
 
@@ -359,6 +377,7 @@ app.get('/api/announcement/stream', (req, res) => {
     pause_since: pauseState.paused && pauseState.since ? pauseState.since.toISOString() : '',
     resume_shift_ms: 0,
   }));
+  res.write(formatSseEvent('config', getClientConfig()));
 
   // Keep-alive comments help avoid idle timeouts on some proxies.
   client.keepAlive = setInterval(() => {
