@@ -1,13 +1,22 @@
 services:
   - type: web
     name: planspiel
-    env: node
-    plan: free
+    runtime: node
+    plan: starter
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /api/ping
+    maxShutdownDelaySeconds: 60
+    numInstances: 1
+    disk:
+      name: planspiel-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DB_PATH
+        value: /var/data/data.sqlite
     routes:
       - path: /
         type: http

@@ -462,12 +462,51 @@ app.get('/scan', (req, res) => {
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server listening on http://${HOST}:${PORT}`);  const interfaces = os.networkInterfaces();
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Server listening on http://${HOST}:${PORT}`);
+  const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
         console.log(`Accessible at: http://${iface.address}:${PORT}`);
       }
     }
-  }});
+  }
+});
+
+function closeSseClientSet(clients) {
+  for (const client of clients) {
+    if (client.keepAlive) clearInterval(client.keepAlive);
+    try {
+      client.res.write(formatSseEvent('shutdown', { reconnect: true }));
+      client.res.end();
+    } catch {}
+  }
+  clients.clear();
+}
+
+function closeUserClientMap() {
+  for (const clients of userClients.values()) {
+    closeSseClientSet(clients);
+  }
+  userClients.clear();
+}
+
+function shutdown(signal) {
+  console.log(`${signal} received, closing HTTP and SSE connections.`);
+  closeSseClientSet(announcementClients);
+  closeUserClientMap();
+
+  server.close(() => {
+    console.log('HTTP server closed.');
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error('Graceful shutdown timed out.');
+    process.exit(1);
+  }, 55000).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

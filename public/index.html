@@ -1961,7 +1961,7 @@
         if (adminTapCount < 5) return;
         adminTapCount = 0;
 
-        const password = prompt('Admin-Passwort eingeben (admin123)');
+        const password = prompt('Admin-Passwort eingeben');
         if (!password) return;
         try {
           const res = await fetch('/api/admin/login', {

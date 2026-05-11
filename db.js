@@ -2,7 +2,7 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 
-const dbPath = path.join(__dirname, 'data.sqlite');
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'data.sqlite');
 const db = new Database(dbPath);
 
 function ensureColumn(table, column, definition) {
@@ -81,7 +81,7 @@ function init() {
     setConfig('db_instance_id', crypto.randomUUID());
   }
 
-  setConfig('admin_password', 'admin123');
+  setConfig('admin_password', 'LKlisAufDie1');
   setConfig('announcement_text', getConfig('announcement_text') || '');
   setConfig('announcement_pause_since', getConfig('announcement_pause_since') || '');
   setConfig('announcement_last_changed_at', getConfig('announcement_last_changed_at') || '');
