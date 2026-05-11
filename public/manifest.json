@@ -1,0 +1,17 @@
+{
+  "name": "Planspiel",
+  "short_name": "Planspiel",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f1fb",
+  "theme_color": "#672686",
+  "icons": [
+    {
+      "src": "/pictures/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

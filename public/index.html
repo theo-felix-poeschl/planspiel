@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#672686" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Planspiel" />
+    <link rel="manifest" href="/manifest.json" />
     <title>Planspiel</title>
     <style>
       :root {
@@ -1225,6 +1229,8 @@
       let announcementStreamOpenTimeout = null;
       let announcementFallbackTimer = null;
       let audioContext = null;
+      let pushSubscriptionUserId = '';
+      let pushSubscriptionPromise = null;
       let userStream = null;
       let userStreamUserId = '';
       let userStreamOpenTimeout = null;
@@ -1456,6 +1462,67 @@
         }
       }
 
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = `${base64String}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; i += 1) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+
+        return outputArray;
+      }
+
+      async function registerPushServiceWorker() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+        return navigator.serviceWorker.register('/sw.js');
+      }
+
+      async function ensurePushSubscription(user = currentUser) {
+        if (!user || isAdmin(user)) return false;
+        if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+        if (pushSubscriptionUserId === user.id) return true;
+        if (pushSubscriptionPromise) return pushSubscriptionPromise;
+
+        pushSubscriptionPromise = (async () => {
+          try {
+            const keyRes = await fetch('/api/push/public-key');
+            const keyJson = await keyRes.json();
+            if (!keyRes.ok || !keyJson.supported || !keyJson.publicKey) return false;
+
+            const registration = await registerPushServiceWorker();
+            if (!registration) return false;
+
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+              subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(keyJson.publicKey),
+              });
+            }
+
+            const res = await fetch('/api/push/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user: user.id, subscription }),
+            });
+
+            if (!res.ok) return false;
+            pushSubscriptionUserId = user.id;
+            return true;
+          } catch (error) {
+            console.error('Push subscription failed', error);
+            return false;
+          } finally {
+            pushSubscriptionPromise = null;
+          }
+        })();
+
+        return pushSubscriptionPromise;
+      }
+
       async function requestStartupPermissions() {
         if (!currentUser) return;
         allowPermissionsButton.disabled = true;
@@ -1468,9 +1535,15 @@
         hidePermissionPrompt({ markSeen: true });
         allowPermissionsButton.disabled = false;
         allowPermissionsButton.textContent = 'Zugriff erlauben';
+        const pushReady = notificationResult === 'granted'
+          ? await ensurePushSubscription(currentUser)
+          : false;
 
-        if (cameraResult === 'granted' && notificationResult === 'granted') {
+        if (cameraResult === 'granted' && notificationResult === 'granted' && pushReady) {
           showToast('Kamera und Benachrichtigungen sind bereit.');
+          playAnnouncementSound();
+        } else if (cameraResult === 'granted' && notificationResult === 'granted') {
+          showToast('Kamera bereit. Sperrbildschirm-Push braucht HTTPS.');
           playAnnouncementSound();
         } else if (cameraResult === 'unsupported' && notificationResult === 'unsupported') {
           showToast('Berechtigungen werden auf diesem Gerät nicht unterstützt.');
@@ -1821,6 +1894,7 @@
 
         updateAdminUI();
         showPermissionPrompt(currentUser);
+        ensurePushSubscription(currentUser);
       }
 
       async function fetchAnnouncement() {

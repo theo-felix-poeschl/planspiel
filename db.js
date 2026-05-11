@@ -75,6 +75,16 @@ function init() {
     )`
   ).run();
 
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS push_subscriptions (
+      endpoint TEXT PRIMARY KEY,
+      user_id TEXT,
+      subscription_json TEXT NOT NULL,
+      created_at TEXT,
+      updated_at TEXT
+    )`
+  ).run();
+
   // Stable identifier for this DB instance. If the sqlite file gets deleted,
   // a fresh DB will get a new id so clients can safely auto re-register.
   if (!getConfig('db_instance_id')) {
@@ -314,6 +324,46 @@ function adminPasswordMatches(password) {
   return stored === password;
 }
 
+function savePushSubscription(userId, subscription) {
+  if (!userId || !subscription || typeof subscription.endpoint !== 'string') return false;
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO push_subscriptions (endpoint, user_id, subscription_json, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(endpoint) DO UPDATE SET
+       user_id = excluded.user_id,
+       subscription_json = excluded.subscription_json,
+       updated_at = excluded.updated_at`
+  ).run(subscription.endpoint, userId, JSON.stringify(subscription), now, now);
+  return true;
+}
+
+function deletePushSubscription(endpoint) {
+  if (!endpoint || typeof endpoint !== 'string') return 0;
+  return db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint).changes;
+}
+
+function listPushSubscriptions() {
+  const rows = db.prepare(
+    `SELECT p.endpoint, p.user_id, p.subscription_json
+     FROM push_subscriptions p
+     JOIN users u ON u.id = p.user_id
+     WHERE COALESCE(u.is_admin, 0) = 0`
+  ).all();
+
+  return rows.map(row => {
+    try {
+      return {
+        endpoint: row.endpoint,
+        user_id: row.user_id,
+        subscription: JSON.parse(row.subscription_json),
+      };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+}
+
 init();
 
 module.exports = {
@@ -333,6 +383,9 @@ module.exports = {
   shiftAllOxygenEnds,
   setAdmin,
   adminPasswordMatches,
+  savePushSubscription,
+  deletePushSubscription,
+  listPushSubscriptions,
   getConfig,
   setConfig,
 };

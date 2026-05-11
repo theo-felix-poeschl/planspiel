@@ -4,6 +4,13 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('./db');
 const config = require('./config.json');
 const os = require('os');
+let webPush = null;
+
+try {
+  webPush = require('web-push');
+} catch {
+  webPush = null;
+}
 
 const app = express();
 app.use(express.json());
@@ -63,6 +70,62 @@ function getClientConfig() {
     startingMoney: config.startingMoney,
     startingOxygenMinutes: config.startingOxygenMinutes,
   };
+}
+
+function ensureVapidKeys() {
+  if (!webPush) return null;
+
+  let publicKey = db.getConfig('push_vapid_public_key') || '';
+  let privateKey = db.getConfig('push_vapid_private_key') || '';
+
+  if (!publicKey || !privateKey) {
+    const keys = webPush.generateVAPIDKeys();
+    publicKey = keys.publicKey;
+    privateKey = keys.privateKey;
+    db.setConfig('push_vapid_public_key', publicKey);
+    db.setConfig('push_vapid_private_key', privateKey);
+  }
+
+  webPush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@planspiel.local',
+    publicKey,
+    privateKey
+  );
+
+  return { publicKey, privateKey };
+}
+
+const vapidKeys = ensureVapidKeys();
+
+async function sendAnnouncementPush(text) {
+  if (!webPush || !vapidKeys) {
+    console.warn('Web push is not available. Install dependencies with npm install.');
+    return;
+  }
+
+  const body = String(text || '').trim();
+  if (!body) return;
+
+  const payload = JSON.stringify({
+    type: 'announcement',
+    title: 'Planspiel-Ankündigung',
+    body,
+    url: '/',
+  });
+
+  const subscriptions = db.listPushSubscriptions();
+  await Promise.all(subscriptions.map(async ({ endpoint, subscription }) => {
+    try {
+      await webPush.sendNotification(subscription, payload);
+    } catch (error) {
+      const statusCode = error && error.statusCode;
+      if (statusCode === 404 || statusCode === 410) {
+        db.deletePushSubscription(endpoint);
+        return;
+      }
+      console.error('Push notification failed', statusCode || '', error && error.message ? error.message : error);
+    }
+  }));
 }
 
 function broadcastAnnouncement(payload) {
@@ -155,6 +218,30 @@ app.get('/api/ping', (req, res) => {
 
 app.get('/api/config', (req, res) => {
   res.json(getClientConfig());
+});
+
+app.get('/api/push/public-key', (req, res) => {
+  res.json({
+    supported: Boolean(webPush && vapidKeys && vapidKeys.publicKey),
+    publicKey: vapidKeys ? vapidKeys.publicKey : '',
+  });
+});
+
+app.post('/api/push/subscribe', (req, res) => {
+  const { user: userId, subscription } = req.body || {};
+  if (!userId || !subscription || typeof subscription.endpoint !== 'string') {
+    return res.status(400).json({ error: 'missing params' });
+  }
+  if (!webPush || !vapidKeys) {
+    return res.status(503).json({ error: 'push unavailable' });
+  }
+
+  const user = db.getUser(userId);
+  if (!user) return res.status(404).json({ error: 'user not found' });
+  if (user.is_admin) return res.json({ ok: true, skipped: 'admin' });
+
+  db.savePushSubscription(userId, subscription);
+  res.json({ ok: true });
 });
 
 app.post('/api/config/oxygen-cost', (req, res) => {
@@ -437,6 +524,11 @@ app.post('/api/announcement', (req, res) => {
     changed_at: nowIso,
     resume_shift_ms: resumeShiftMs,
   });
+  if (hasAnnouncement) {
+    sendAnnouncementPush(text).catch(error => {
+      console.error('Announcement push broadcast failed', error);
+    });
+  }
 
   res.json({ announcement: text });
 });
