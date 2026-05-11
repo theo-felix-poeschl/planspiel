@@ -1223,6 +1223,7 @@
       let announcementStream = null;
       let announcementStreamOpenTimeout = null;
       let announcementFallbackTimer = null;
+      let audioContext = null;
       let userStream = null;
       let userStreamUserId = '';
       let userStreamOpenTimeout = null;
@@ -1327,6 +1328,78 @@
         showToast._timeout = setTimeout(() => toastEl.classList.remove('show'), 2600);
       }
 
+      function getAudioContext() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        if (!audioContext) audioContext = new AudioContextClass();
+        return audioContext;
+      }
+
+      async function unlockAnnouncementAudio() {
+        const context = getAudioContext();
+        if (!context) return false;
+
+        try {
+          if (context.state === 'suspended') await context.resume();
+
+          const buffer = context.createBuffer(1, 1, context.sampleRate);
+          const source = context.createBufferSource();
+          source.buffer = buffer;
+          source.connect(context.destination);
+          source.start(0);
+          return true;
+        } catch (error) {
+          console.error('Audio unlock failed', error);
+          return false;
+        }
+      }
+
+      function playAnnouncementSound() {
+        const context = getAudioContext();
+        if (!context || context.state !== 'running') return false;
+
+        try {
+          const now = context.currentTime;
+          const masterGain = context.createGain();
+          masterGain.gain.setValueAtTime(0.0001, now);
+          masterGain.gain.exponentialRampToValueAtTime(0.18, now + 0.025);
+          masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+          masterGain.connect(context.destination);
+
+          [0, 0.24, 0.48].forEach((offset, index) => {
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            const start = now + offset;
+            const end = start + 0.16;
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(index === 1 ? 880 : 660, start);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(1, start + 0.018);
+            gain.gain.exponentialRampToValueAtTime(0.0001, end);
+            oscillator.connect(gain);
+            gain.connect(masterGain);
+            oscillator.start(start);
+            oscillator.stop(end + 0.03);
+          });
+
+          return true;
+        } catch (error) {
+          console.error('Announcement sound failed', error);
+          return false;
+        }
+      }
+
+      function vibrateAnnouncement() {
+        if (!('vibrate' in navigator)) return false;
+        try {
+          return navigator.vibrate([220, 90, 220, 90, 360]);
+        } catch (error) {
+          console.error('Announcement vibration failed', error);
+          return false;
+        }
+      }
+
       function getPermissionPromptKey(userId) {
         return `${permissionPromptPrefix}${userId || 'unknown'}`;
       }
@@ -1387,6 +1460,7 @@
         allowPermissionsButton.disabled = true;
         allowPermissionsButton.textContent = 'Berechtigungen werden angefragt...';
 
+        await unlockAnnouncementAudio();
         const notificationResult = await requestNotificationPermission();
         const cameraResult = await requestCameraPermission();
 
@@ -1396,6 +1470,7 @@
 
         if (cameraResult === 'granted' && notificationResult === 'granted') {
           showToast('Kamera und Benachrichtigungen sind bereit.');
+          playAnnouncementSound();
         } else if (cameraResult === 'unsupported' && notificationResult === 'unsupported') {
           showToast('Berechtigungen werden auf diesem Gerät nicht unterstützt.');
         } else {
@@ -1406,20 +1481,24 @@
       function notifyAnnouncement(text, meta = {}) {
         const message = String(text || '').trim();
         if (!message || !currentUser || isAdmin(currentUser)) return;
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
         const notificationKey = `${meta.pause_since || meta.changed_at || ''}|${message}`;
         if (notificationKey === lastNotifiedAnnouncementKey) return;
         lastNotifiedAnnouncementKey = notificationKey;
 
-        try {
-          new Notification('Planspiel-Ankündigung', {
-            body: message,
-            tag: 'planspiel-announcement',
-            renotify: true,
-          });
-        } catch (error) {
-          console.error('Announcement notification failed', error);
+        playAnnouncementSound();
+        vibrateAnnouncement();
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification('Planspiel-Ankündigung', {
+              body: message,
+              tag: 'planspiel-announcement',
+              renotify: true,
+            });
+          } catch (error) {
+            console.error('Announcement notification failed', error);
+          }
         }
       }
 
@@ -2278,6 +2357,8 @@
       relationshipModal.addEventListener('click', (event) => {
         if (event.target === relationshipModal) closeRelationshipModal();
       });
+      document.addEventListener('pointerdown', unlockAnnouncementAudio, { once: true });
+      document.addEventListener('keydown', unlockAnnouncementAudio, { once: true });
       scanQrButton.addEventListener('click', scanQr);
       healScanButton.addEventListener('click', scanQr);
       stopScannerButton.addEventListener('click', stopQrScanner);
