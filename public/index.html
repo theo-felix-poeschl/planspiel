@@ -326,7 +326,11 @@
         align-items: center;
         justify-content: center;
         padding: 1rem;
-        background: rgba(32, 20, 47, 0.9);
+        background:
+          radial-gradient(circle at 18% 12%, rgba(250, 186, 2, 0.28), transparent 28%),
+          radial-gradient(circle at 86% 16%, rgba(198, 22, 141, 0.18), transparent 30%),
+          rgba(245, 241, 251, 0.92);
+        backdrop-filter: blur(14px);
         z-index: 20;
         pointer-events: auto;
       }
@@ -337,36 +341,72 @@
 
       .dead-card {
         width: min(100%, 420px);
-        border-radius: 32px;
-        padding: 2rem 1.5rem;
-        background: rgba(32, 20, 47, 0.96);
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 28px;
+        padding: 1.4rem;
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,248,223,0.98));
+        box-shadow: 0 24px 70px rgba(32, 20, 47, 0.24);
+        border: 1px solid rgba(250, 186, 2, 0.46);
         text-align: center;
-        color: #f8fafc;
+        color: var(--ink);
+        display: grid;
+        justify-items: center;
+        gap: 0.85rem;
       }
 
       .dead-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        color: var(--color-yellow);
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--color-yellow), #ffd866);
+        color: var(--ink);
+        box-shadow: 0 18px 44px rgba(250, 186, 2, 0.28);
+        position: relative;
+      }
+
+      .dead-icon::before,
+      .dead-icon::after {
+        content: '';
+        position: absolute;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .dead-icon::before {
+        width: 34px;
+        height: 10px;
+      }
+
+      .dead-icon::after {
+        width: 10px;
+        height: 34px;
       }
 
       .dead-card h1 {
         margin: 0;
-        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-size: clamp(2.2rem, 8vw, 3.4rem);
+        line-height: 0.95;
         letter-spacing: 0;
+      }
+
+      .dead-card h2 {
+        margin: 0;
+        max-width: 320px;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.35;
+        font-weight: 800;
       }
 
       .dead-card p {
         margin: 1rem 0 0;
-        color: rgba(248, 250, 252, 0.8);
+        color: var(--muted);
         line-height: 1.6;
       }
 
       .dead-divider {
-        margin: 1.75rem auto 1rem;
-        width: 72px;
+        width: 86px;
         height: 4px;
         background: linear-gradient(90deg, var(--color-yellow), var(--color-pink));
         border-radius: 999px;
@@ -380,14 +420,16 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.75rem;
-        padding: 1rem 1.25rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(250, 186, 2, 0.32);
-        color: #fff;
-        font-weight: 700;
-        font-size: 0.96rem;
+        gap: 0.65rem;
+        width: min(100%, 340px);
+        min-height: 56px;
+      }
+
+      .dead-action .scan-icon {
+        width: 22px;
+        height: 22px;
+        color: currentColor;
+        filter: none;
       }
 
       .camera-button {
@@ -398,7 +440,8 @@
       .scanner-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(32, 20, 47, 0.84);
+        background: rgba(32, 20, 47, 0.72);
+        backdrop-filter: blur(10px);
         display: grid;
         place-items: center;
         padding: 1rem;
@@ -409,10 +452,11 @@
         width: min(100%, 520px);
         display: grid;
         gap: 1rem;
-        background: #20142f;
-        border-radius: 24px;
+        background: var(--surface);
+        border: 1px solid rgba(64, 185, 227, 0.28);
+        border-radius: 28px;
         overflow: hidden;
-        box-shadow: 0 32px 80px rgba(32, 20, 47, 0.38);
+        box-shadow: 0 32px 80px rgba(32, 20, 47, 0.34);
       }
 
       .scanner video {
@@ -421,12 +465,14 @@
         aspect-ratio: 4 / 3;
         object-fit: cover;
         background: black;
+        border-bottom: 1px solid rgba(64, 185, 227, 0.18);
       }
 
       .scanner-message {
-        color: #f8fafc;
+        color: var(--ink);
         font-size: 0.95rem;
-        padding: 0 1rem 0.5rem;
+        font-weight: 800;
+        padding: 0 1rem 0.25rem;
         text-align: center;
       }
 
@@ -809,6 +855,95 @@
         gap: 0.75rem;
       }
 
+      .permission-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(32, 20, 47, 0.72);
+        backdrop-filter: blur(10px);
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        z-index: 75;
+      }
+
+      .permission-card {
+        width: min(100%, 430px);
+        border-radius: 28px;
+        padding: 1.35rem;
+        background: var(--surface);
+        border: 1px solid var(--border-blue);
+        box-shadow: 0 24px 70px rgba(32, 20, 47, 0.3);
+        display: grid;
+        gap: 1rem;
+        color: var(--ink);
+      }
+
+      .permission-header {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .permission-title {
+        margin: 0;
+        font-size: 1.35rem;
+        line-height: 1.15;
+        font-weight: 950;
+      }
+
+      .permission-text {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+        font-weight: 700;
+      }
+
+      .permission-list {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .permission-item {
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        align-items: center;
+        gap: 0.75rem;
+        border-radius: 18px;
+        border: 1px solid var(--border-purple);
+        background: rgba(103, 38, 134, 0.04);
+        padding: 0.75rem;
+      }
+
+      .permission-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(64, 185, 227, 0.12);
+        color: var(--color-purple);
+        font-size: 1.25rem;
+        font-weight: 900;
+      }
+
+      .permission-item strong {
+        display: block;
+        color: var(--ink);
+        font-size: 0.98rem;
+      }
+
+      .permission-item span {
+        display: block;
+        margin-top: 0.15rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.35;
+      }
+
+      .permission-actions {
+        display: grid;
+        gap: 0.65rem;
+      }
+
       .buyOxygenButton {
         font-size: larger;
         width: min(100%, 460px);
@@ -861,11 +996,14 @@
 
         <div id="expiredOverlay" class="expired-overlay hidden">
           <div class="dead-card">
-            <div class="dead-icon">⚠️</div>
+            <div class="dead-icon" aria-hidden="true"></div>
             <h1>Sauerstoff kritisch!</h1>
             <h2>Begib dich sofort in die Krankenstation.</h2>
             <div class="dead-divider"></div>
-            <button id="healScanButton">Am QR-Code in der Krankenstation heilen</button>
+            <button id="healScanButton" class="button dead-action">
+              <span class="scan-icon" aria-hidden="true"></span>
+              Heilungs-QR scannen
+            </button>
           </div>
         </div>
         <div id="scannerContainer" class="scanner-overlay hidden">
@@ -991,6 +1129,39 @@
       </div>
     </div>
 
+    <div id="permissionModal" class="permission-modal hidden">
+      <div class="permission-card">
+        <div class="permission-header">
+          <h2 class="permission-title">Kurz bereit machen</h2>
+          <p class="permission-text">Erlaube Kamera und Benachrichtigungen, damit Scans und Warnungen während des Spiels funktionieren.</p>
+        </div>
+
+        <div class="permission-list">
+          <div class="permission-item">
+            <div class="permission-icon" aria-hidden="true">
+              <span class="scan-icon"></span>
+            </div>
+            <div>
+              <strong>Kamera</strong>
+              <span>Wird für QR-Codes und die Krankenstation gebraucht.</span>
+            </div>
+          </div>
+          <div class="permission-item">
+            <div class="permission-icon" aria-hidden="true">!</div>
+            <div>
+              <strong>Benachrichtigungen</strong>
+              <span>Damit wichtige Hinweise sofort sichtbar werden.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="permission-actions">
+          <button id="allowPermissionsButton" class="button">Zugriff erlauben</button>
+          <button id="laterPermissionsButton" class="button secondary">Später</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast"></div>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
@@ -1040,6 +1211,9 @@
       const partnerCodeInput = document.getElementById('partnerCodeInput');
       const marryButton = document.getElementById('marryButton');
       const divorceButton = document.getElementById('divorceButton');
+      const permissionModal = document.getElementById('permissionModal');
+      const allowPermissionsButton = document.getElementById('allowPermissionsButton');
+      const laterPermissionsButton = document.getElementById('laterPermissionsButton');
 
       let currentUser = null;
       let currentAnnouncement = '';
@@ -1060,6 +1234,7 @@
 	      let oxygenPurchaseCost = 30;
 	      let oxygenPurchaseMinutes = 10;
 	      let lastBuyButtonKey = '';
+      const permissionPromptPrefix = 'planspiel_permissions_prompted_';
 
 	      function isAdmin(user) {
 	        return Boolean(user && (user.is_admin === 1 || user.is_admin === true));
@@ -1148,6 +1323,82 @@
         toastEl.classList.add('show');
         clearTimeout(showToast._timeout);
         showToast._timeout = setTimeout(() => toastEl.classList.remove('show'), 2600);
+      }
+
+      function getPermissionPromptKey(userId) {
+        return `${permissionPromptPrefix}${userId || 'unknown'}`;
+      }
+
+      function markPermissionPromptSeen(userId) {
+        if (!userId) return;
+        localStorage.setItem(getPermissionPromptKey(userId), '1');
+      }
+
+      function shouldShowPermissionPrompt(user) {
+        if (!user || isAdmin(user)) return false;
+        return localStorage.getItem(getPermissionPromptKey(user.id)) !== '1';
+      }
+
+      function showPermissionPrompt(user) {
+        if (!permissionModal || !shouldShowPermissionPrompt(user)) return;
+        permissionModal.classList.remove('hidden');
+      }
+
+      function hidePermissionPrompt({ markSeen = false } = {}) {
+        if (markSeen && currentUser) markPermissionPromptSeen(currentUser.id);
+        if (permissionModal) permissionModal.classList.add('hidden');
+      }
+
+      async function requestCameraPermission() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          return 'unsupported';
+        }
+
+        let stream = null;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          return 'granted';
+        } catch (error) {
+          console.error('Camera permission request failed', error);
+          return 'denied';
+        } finally {
+          if (stream) stream.getTracks().forEach(track => track.stop());
+        }
+      }
+
+      async function requestNotificationPermission() {
+        if (!('Notification' in window)) return 'unsupported';
+        if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+          return Notification.permission;
+        }
+
+        try {
+          return await Notification.requestPermission();
+        } catch (error) {
+          console.error('Notification permission request failed', error);
+          return 'denied';
+        }
+      }
+
+      async function requestStartupPermissions() {
+        if (!currentUser) return;
+        allowPermissionsButton.disabled = true;
+        allowPermissionsButton.textContent = 'Berechtigungen werden angefragt...';
+
+        const notificationResult = await requestNotificationPermission();
+        const cameraResult = await requestCameraPermission();
+
+        hidePermissionPrompt({ markSeen: true });
+        allowPermissionsButton.disabled = false;
+        allowPermissionsButton.textContent = 'Zugriff erlauben';
+
+        if (cameraResult === 'granted' && notificationResult === 'granted') {
+          showToast('Kamera und Benachrichtigungen sind bereit.');
+        } else if (cameraResult === 'unsupported' && notificationResult === 'unsupported') {
+          showToast('Berechtigungen werden auf diesem Gerät nicht unterstützt.');
+        } else {
+          showToast('Du kannst Berechtigungen später im Browser aktivieren.');
+        }
       }
 
       function formatMarriageCode(code) {
@@ -1432,6 +1683,7 @@
 	          expiredAlert.classList.add('hidden');
 	          announcementBanner.classList.add('hidden');
 	          expiredOverlay.classList.add('hidden');
+	          if (permissionModal) permissionModal.classList.add('hidden');
 	          updateRelationshipUI();
 	          stopQrScanner();
           hideAdminScreen();
@@ -1466,6 +1718,7 @@
         }
 
         updateAdminUI();
+        showPermissionPrompt(currentUser);
       }
 
       async function fetchAnnouncement() {
@@ -1720,6 +1973,7 @@
           }
           applyUserState(json.user);
           showToast('Gerät wurde registriert.');
+          showPermissionPrompt(json.user);
         } catch (error) {
           console.error('Registration failed', error);
           showToast('Registrierung fehlgeschlagen.');
@@ -1740,7 +1994,6 @@
             return;
           }
           applyUserState(json.user);
-          showToast(`${oxygenPurchaseMinutes} Minuten Sauerstoff hinzugefügt.`);
         } catch (error) {
           console.error('Buy oxygen error', error);
           showToast('Kauf fehlgeschlagen.');
@@ -1976,7 +2229,6 @@
           }
           applyUserState(json.user);
           showAdminScreen();
-          /* alert('Admin-Passwort korrekt. Admin-Modus aktiviert.'); */
           showToast('Admin-Modus aktiviert.');
         } catch (error) {
           console.error('Admin login failed', error);
@@ -1998,6 +2250,8 @@
       scanQrButton.addEventListener('click', scanQr);
       healScanButton.addEventListener('click', scanQr);
       stopScannerButton.addEventListener('click', stopQrScanner);
+      allowPermissionsButton.addEventListener('click', requestStartupPermissions);
+      laterPermissionsButton.addEventListener('click', () => hidePermissionPrompt({ markSeen: true }));
       if (announcementInput) announcementInput.addEventListener('input', updateAdminUI);
       saveAnnouncementButton.addEventListener('click', saveAnnouncement);
       deleteAnnouncementButton.addEventListener('click', deleteAnnouncement);
