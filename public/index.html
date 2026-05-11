@@ -1218,6 +1218,8 @@
       let currentUser = null;
       let currentAnnouncement = '';
       let lastShownAnnouncement = '';
+      let lastNotifiedAnnouncementKey = '';
+      let announcementInitialized = false;
       let announcementStream = null;
       let announcementStreamOpenTimeout = null;
       let announcementFallbackTimer = null;
@@ -1398,6 +1400,26 @@
           showToast('Berechtigungen werden auf diesem Gerät nicht unterstützt.');
         } else {
           showToast('Du kannst Berechtigungen später im Browser aktivieren.');
+        }
+      }
+
+      function notifyAnnouncement(text, meta = {}) {
+        const message = String(text || '').trim();
+        if (!message || !currentUser || isAdmin(currentUser)) return;
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const notificationKey = `${meta.pause_since || meta.changed_at || ''}|${message}`;
+        if (notificationKey === lastNotifiedAnnouncementKey) return;
+        lastNotifiedAnnouncementKey = notificationKey;
+
+        try {
+          new Notification('Planspiel-Ankündigung', {
+            body: message,
+            tag: 'planspiel-announcement',
+            renotify: true,
+          });
+        } catch (error) {
+          console.error('Announcement notification failed', error);
         }
       }
 
@@ -1738,6 +1760,10 @@
         const isActive = typeof meta.paused === 'boolean'
           ? meta.paused
           : (newAnnouncement && newAnnouncement.trim().length > 0);
+        const shouldNotify = announcementInitialized
+          && isActive
+          && newAnnouncement.trim().length > 0
+          && newAnnouncement !== lastShownAnnouncement;
 
         // Detect new announcement and show modal
         if (newAnnouncement && newAnnouncement !== lastShownAnnouncement && newAnnouncement.trim().length > 0) {
@@ -1749,8 +1775,13 @@
           }
         }
 
+        if (shouldNotify) {
+          notifyAnnouncement(newAnnouncement, meta);
+        }
+
         // Update stored announcement without affecting timer
         currentAnnouncement = newAnnouncement;
+        announcementInitialized = true;
         updateAdminUI();
 
         if (!isActive) {

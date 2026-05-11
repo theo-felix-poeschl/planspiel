@@ -348,11 +348,13 @@ app.post('/api/admin/login', (req, res) => {
 
 app.get('/api/announcement', (req, res) => {
   const announcement = db.getConfig('announcement_text') || '';
+  const changedAt = db.getConfig('announcement_last_changed_at') || '';
   const pauseState = getPauseState();
   res.json({
     announcement,
     paused: announcement.trim().length > 0,
     pause_since: pauseState.paused && pauseState.since ? pauseState.since.toISOString() : '',
+    changed_at: changedAt,
   });
 });
 
@@ -370,11 +372,13 @@ app.get('/api/announcement/stream', (req, res) => {
 
   // Send current value immediately so reconnects have state.
   const current = db.getConfig('announcement_text') || '';
+  const changedAt = db.getConfig('announcement_last_changed_at') || '';
   const pauseState = getPauseState();
   res.write(formatSseEvent('announcement', {
     announcement: current,
     paused: current.trim().length > 0,
     pause_since: pauseState.paused && pauseState.since ? pauseState.since.toISOString() : '',
+    changed_at: changedAt,
     resume_shift_ms: 0,
   }));
   res.write(formatSseEvent('config', getClientConfig()));
@@ -430,6 +434,7 @@ app.post('/api/announcement', (req, res) => {
     announcement: text,
     paused: hasAnnouncement,
     pause_since: updatedPauseState.paused && updatedPauseState.since ? updatedPauseState.since.toISOString() : '',
+    changed_at: nowIso,
     resume_shift_ms: resumeShiftMs,
   });
 
