@@ -729,7 +729,8 @@
         display: grid;
         place-items: center;
         padding: 1rem;
-        /* z-index: 50; */
+        z-index: 100;
+        pointer-events: auto;
       }
 
       .announcement-modal.hidden {
@@ -2377,9 +2378,6 @@
       }
       moneyDisplay.addEventListener('click', triggerAdminLogin);
       adminBackButton.addEventListener('click', hideAdminScreen);
-      announcementModal.addEventListener('click', () => {
-        announcementModal.classList.add('hidden');
-      });
 
       loadUser();
       loadClientConfig();
